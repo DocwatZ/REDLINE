@@ -1,0 +1,25 @@
+<nav aria-label="Account options" class="space-y-2">
+  <% if controller_name != 'sessions' %>
+    <%= link_to "Sign in", new_session_path(resource_name),
+          class: "block text-sm text-accent hover:underline
+                  focus:outline-none focus:ring-2 focus:ring-accent rounded" %>
+  <% end %>
+
+  <% if devise_mapping.registerable? && controller_name != 'registrations' %>
+    <%= link_to "Create account", new_registration_path(resource_name),
+          class: "block text-sm text-secondary hover:text-primary hover:underline
+                  focus:outline-none focus:ring-2 focus:ring-accent rounded" %>
+  <% end %>
+
+  <% if devise_mapping.recoverable? && controller_name != 'passwords' && controller_name != 'registrations' %>
+    <%= link_to "Forgot password?", new_password_path(resource_name),
+          class: "block text-sm text-secondary hover:text-primary hover:underline
+                  focus:outline-none focus:ring-2 focus:ring-accent rounded" %>
+  <% end %>
+
+  <% if devise_mapping.lockable? && resource_class.unlock_strategy_enabled?(:email) && controller_name != 'unlocks' %>
+    <%= link_to "Unlock account", new_unlock_path(resource_name),
+          class: "block text-sm text-secondary hover:text-primary hover:underline
+                  focus:outline-none focus:ring-2 focus:ring-accent rounded" %>
+  <% end %>
+</nav>

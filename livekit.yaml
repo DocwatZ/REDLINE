@@ -1,0 +1,24 @@
+# LiveKit Server Configuration
+# https://docs.livekit.io/oss/deployment/config/
+port: 7880
+
+rtc:
+  tcp_port: 7881
+  udp_port: 7882
+  # Uncomment and set your public IP / TURN for external access:
+  # use_external_ip: true
+
+keys:
+  # Replace with your actual API key and secret (must match .env)
+  devkey: devsecret
+
+logging:
+  level: info
+
+# TURN server (uncomment and configure for external call reliability)
+# turn:
+#   enabled: true
+#   domain: turn.yourdomain.com
+#   tls_port: 5349
+#   udp_port: 3478
+#   credential: your-turn-credential

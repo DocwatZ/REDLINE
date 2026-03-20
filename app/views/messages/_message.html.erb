@@ -1,0 +1,36 @@
+<% is_own = message.user == current_user %>
+<article id="message-<%= message.id %>"
+         class="flex gap-3 py-1 px-2 rounded hover:bg-surface-elevated/50 group"
+         aria-label="Message from <%= message.user.display_name %> at <%= message.created_at.strftime('%H:%M') %>">
+  <%# Avatar %>
+  <div class="flex-shrink-0 mt-0.5" aria-hidden="true">
+    <div class="w-8 h-8 rounded-full flex items-center justify-center
+                text-white text-xs font-bold"
+         style="background-color: <%= message.user.avatar_color %>">
+      <%= message.user.initials %>
+    </div>
+  </div>
+
+  <%# Content %>
+  <div class="flex-1 min-w-0">
+    <div class="flex items-baseline gap-2 flex-wrap">
+      <%= link_to message.user.display_name,
+            user_path(message.user),
+            class: "font-semibold text-sm text-primary hover:underline
+                    focus:outline-none focus:ring-2 focus:ring-accent rounded" %>
+      <time datetime="<%= message.created_at.iso8601 %>"
+            class="text-xs text-muted"
+            title="<%= message.created_at.strftime('%B %-d, %Y at %H:%M UTC') %>">
+        <%= message.created_at.strftime('%H:%M') %>
+      </time>
+      <% if message.edited? && !message.deleted? %>
+        <span class="text-xs text-muted italic" aria-label="edited">(edited)</span>
+      <% end %>
+    </div>
+
+    <div class="text-sm text-secondary mt-0.5 leading-relaxed whitespace-pre-wrap break-words
+                <%= "italic text-muted" if message.deleted? %>">
+      <%= message.display_body %>
+    </div>
+  </div>
+</article>

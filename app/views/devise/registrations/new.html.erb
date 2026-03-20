@@ -1,0 +1,118 @@
+<% content_for :title, "Create Account" %>
+
+<div class="auth-card">
+  <div class="auth-brand">
+    <div class="auth-brand-icon" aria-hidden="true">
+      <svg width="32" height="32" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" d="M13 10V3L4 14h7v7l9-11h-7z"/>
+      </svg>
+    </div>
+    <h1 style="font-size:1.5rem;font-weight:700;color:var(--rl-text-primary)">Create your account</h1>
+    <p style="color:var(--rl-text-muted);font-size:.875rem;margin-top:.25rem">
+      Join REDLINE — your data stays yours
+    </p>
+  </div>
+
+  <%= form_for(resource, as: resource_name, url: registration_path(resource_name),
+               html: { novalidate: false }) do |f| %>
+
+    <% if resource.errors.any? %>
+      <div role="alert" style="margin-bottom:1.25rem;padding:1rem;background:rgba(127,29,29,.3);border:1px solid #b91c1c;border-radius:.5rem">
+        <h2 style="font-size:.875rem;font-weight:600;color:#fca5a5;margin-bottom:.5rem">
+          <%= pluralize(resource.errors.count, "error") %> prevented sign-up:
+        </h2>
+        <ul style="list-style:disc;list-style-position:inside;padding:0;margin:0">
+          <% resource.errors.full_messages.each do |msg| %>
+            <li style="font-size:.875rem;color:#fca5a5"><%= msg %></li>
+          <% end %>
+        </ul>
+      </div>
+    <% end %>
+
+    <div style="display:flex;flex-direction:column;gap:1rem">
+      <div>
+        <%= f.label :display_name, class: "form-label" do %>
+          Display Name
+          <span style="color:var(--rl-danger)" aria-hidden="true">*</span>
+          <span class="sr-only">(required)</span>
+        <% end %>
+        <%= f.text_field :display_name,
+              autofocus: true,
+              autocomplete: "nickname",
+              class: "input-field",
+              required: true,
+              "aria-required": "true",
+              "aria-describedby": "dn-hint",
+              minlength: 2,
+              maxlength: 32 %>
+        <p id="dn-hint" class="form-hint">2–32 characters, visible to other users.</p>
+      </div>
+
+      <div>
+        <%= f.label :email, class: "form-label" do %>
+          Email address
+          <span style="color:var(--rl-danger)" aria-hidden="true">*</span>
+          <span class="sr-only">(required)</span>
+        <% end %>
+        <%= f.email_field :email,
+              autocomplete: "email",
+              class: "input-field",
+              required: true,
+              "aria-required": "true" %>
+      </div>
+
+      <div>
+        <%= f.label :password, class: "form-label" do %>
+          Password
+          <span style="color:var(--rl-danger)" aria-hidden="true">*</span>
+          <span class="sr-only">(required)</span>
+        <% end %>
+        <div style="position:relative">
+          <%= f.password_field :password,
+                autocomplete: "new-password",
+                class: "input-field",
+                style: "padding-right:2.5rem",
+                required: true,
+                "aria-required": "true",
+                "aria-describedby": "pw-hint",
+                minlength: 12,
+                id: "reg-password" %>
+          <button type="button"
+                  class="btn-icon"
+                  style="position:absolute;right:.375rem;top:50%;transform:translateY(-50%);min-height:auto;min-width:auto"
+                  aria-label="Show password"
+                  data-controller="password-toggle"
+                  data-action="click->password-toggle#toggle"
+                  data-password-toggle-target-value="reg-password">
+            <svg aria-hidden="true" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/>
+              <path stroke-linecap="round" stroke-linejoin="round" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/>
+            </svg>
+          </button>
+        </div>
+        <p id="pw-hint" class="form-hint">Minimum 12 characters.</p>
+      </div>
+
+      <div>
+        <%= f.label :password_confirmation, class: "form-label" do %>
+          Confirm Password
+          <span style="color:var(--rl-danger)" aria-hidden="true">*</span>
+          <span class="sr-only">(required)</span>
+        <% end %>
+        <%= f.password_field :password_confirmation,
+              autocomplete: "new-password",
+              class: "input-field",
+              required: true,
+              "aria-required": "true" %>
+      </div>
+
+      <%= f.submit "Create Account",
+            class: "btn btn-primary",
+            style: "width:100%;margin-top:.5rem;justify-content:center" %>
+    </div>
+  <% end %>
+
+  <div style="margin-top:1.5rem;padding-top:1.25rem;border-top:1px solid var(--rl-border);text-align:center">
+    <%= render "devise/shared/links" %>
+  </div>
+</div>

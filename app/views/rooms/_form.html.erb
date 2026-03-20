@@ -1,0 +1,91 @@
+<%= form_with model: room, class: "space-y-5" do |f| %>
+  <% if room.errors.any? %>
+    <div role="alert" class="p-4 bg-red-900/30 border border-red-700 rounded-lg">
+      <h2 class="text-sm font-semibold text-red-300 mb-2">
+        <%= pluralize(room.errors.count, "error") %> prevented this room from being saved:
+      </h2>
+      <ul class="list-disc list-inside space-y-1">
+        <% room.errors.full_messages.each do |message| %>
+          <li class="text-sm text-red-300"><%= message %></li>
+        <% end %>
+      </ul>
+    </div>
+  <% end %>
+
+  <div class="form-group">
+    <%= f.label :name, class: "form-label" do %>
+      Room Name <span class="text-danger" aria-hidden="true">*</span>
+      <span class="sr-only">(required)</span>
+    <% end %>
+    <%= f.text_field :name,
+          class: "input-field w-full",
+          placeholder: "general",
+          autocomplete: "off",
+          required: true,
+          "aria-required": true,
+          "aria-describedby": "name-hint" %>
+    <p id="name-hint" class="text-xs text-muted mt-1">
+      Letters, numbers, spaces, hyphens, underscores. 2–64 characters.
+    </p>
+  </div>
+
+  <div class="form-group">
+    <%= f.label :description, class: "form-label" %>
+    <%= f.text_area :description,
+          class: "input-field w-full",
+          rows: 3,
+          placeholder: "What's this room about?",
+          "aria-describedby": "desc-hint" %>
+    <p id="desc-hint" class="text-xs text-muted mt-1">Optional. Shown to members.</p>
+  </div>
+
+  <div class="form-group">
+    <%= f.label :room_type, class: "form-label" do %>
+      Room Type <span class="text-danger" aria-hidden="true">*</span>
+      <span class="sr-only">(required)</span>
+    <% end %>
+    <fieldset class="mt-2 space-y-2">
+      <legend class="sr-only">Room type</legend>
+      <% [["text", "# Text", "Real-time text chat"], ["voice", "🔊 Voice", "Voice & video calls"], ["announcement", "📢 Announcement", "One-way broadcasts only"]].each do |value, label, desc| %>
+        <label class="flex items-start gap-3 p-3 bg-surface-elevated border border-border rounded-lg
+                      cursor-pointer hover:border-accent/50 transition-colors
+                      has-[:checked]:border-accent has-[:checked]:bg-accent/5">
+          <%= f.radio_button :room_type, value,
+                class: "mt-0.5 w-4 h-4 text-accent border-border bg-surface-elevated
+                        focus:ring-2 focus:ring-accent focus:ring-offset-2 focus:ring-offset-base",
+                "aria-describedby": "#{value}-desc" %>
+          <div>
+            <span class="font-medium text-primary text-sm"><%= label %></span>
+            <p id="<%= value %>-desc" class="text-xs text-muted"><%= desc %></p>
+          </div>
+        </label>
+      <% end %>
+    </fieldset>
+  </div>
+
+  <div class="form-group">
+    <div class="flex items-start gap-3">
+      <%= f.check_box :private,
+            class: "mt-0.5 w-4 h-4 rounded text-accent border-border bg-surface-elevated
+                    focus:ring-2 focus:ring-accent focus:ring-offset-2 focus:ring-offset-base",
+            id: "room_private",
+            "aria-describedby": "private-hint" %>
+      <div>
+        <%= f.label :private, "Private Room",
+              class: "font-medium text-primary text-sm cursor-pointer",
+              for: "room_private" %>
+        <p id="private-hint" class="text-xs text-muted">
+          Only invited members can see and join this room.
+        </p>
+      </div>
+    </div>
+  </div>
+
+  <div class="flex gap-3 pt-2">
+    <%= f.submit room.persisted? ? "Save Changes" : "Create Room",
+          class: "btn-primary" %>
+    <%= link_to "Cancel",
+          room.persisted? ? room_path(room) : rooms_path,
+          class: "btn-ghost" %>
+  </div>
+<% end %>

@@ -1,0 +1,55 @@
+# Ruby / Rails
+*.gem
+*.rbc
+/.config
+/coverage/
+/InstalledFiles
+/pkg/
+/spec/reports/
+/spec/examples.txt
+/test/tmp/
+/test/version_tmp/
+/tmp/
+
+# Bundler
+/.bundle/
+/vendor/bundle
+/vendor/cache/
+/vendor/ruby/
+
+# Rails
+/log/*
+!/log/.keep
+/storage/*
+!/storage/.keep
+/tmp/*
+!/tmp/.keep
+/public/assets
+/public/packs
+/public/packs-test
+
+# Database
+/config/master.key
+/config/credentials.yml.enc
+
+# Environment
+.env
+.env.*
+!.env.example
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Editor
+*.swp
+*.swo
+.vscode/
+.idea/
+
+# Node
+node_modules/
+yarn-error.log
+
+# PWA
+/public/sw.js.map

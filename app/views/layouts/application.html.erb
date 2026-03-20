@@ -1,0 +1,182 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="theme-color" content="#0f1117">
+    <meta name="description" content="REDLINE — Privacy-first, self-hosted real-time communication">
+    <title><%= content_for?(:title) ? "#{yield :title} · REDLINE" : "REDLINE" %></title>
+    <%= csrf_meta_tags %>
+    <%= csp_meta_tag %>
+    <link rel="manifest" href="/manifest.json">
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg">
+    <%= stylesheet_link_tag "application", "data-turbo-track": "reload" %>
+    <%= javascript_importmap_tags %>
+    <script>
+      // Register service worker for PWA
+      if ('serviceWorker' in navigator) {
+        window.addEventListener('load', () =>
+          navigator.serviceWorker.register('/sw.js').catch(() => {})
+        )
+      }
+    </script>
+  </head>
+
+  <body>
+    <%# Skip navigation link — first focusable element, visible on focus %>
+    <a href="#main-content" aria-label="Skip to main content">Skip to main content</a>
+
+    <% if user_signed_in? %>
+      <%# App Shell %>
+      <div role="application" aria-label="REDLINE application" style="display:flex;height:100vh;overflow:hidden">
+
+        <%# Sidebar %>
+        <nav id="sidebar" aria-label="Main navigation">
+          <%# Brand %>
+          <div style="height:3.5rem;display:flex;align-items:center;padding:0 1rem;border-bottom:1px solid var(--rl-border);flex-shrink:0">
+            <%= link_to rooms_path,
+                  style: "display:flex;align-items:center;gap:.5rem;color:var(--rl-accent);font-weight:700;font-size:1.125rem;letter-spacing:.05em;text-decoration:none;border-radius:4px",
+                  aria: { label: "REDLINE home" } do %>
+              <svg aria-hidden="true" width="24" height="24" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M13 10V3L4 14h7v7l9-11h-7z"/>
+              </svg>
+              REDLINE
+            <% end %>
+          </div>
+
+          <%# Nav content %>
+          <div class="scroll-area" style="flex:1;padding:.5rem 0">
+            <%# Rooms %>
+            <section aria-labelledby="nav-rooms-heading">
+              <div style="display:flex;align-items:center;justify-content:space-between;padding:.25rem .75rem">
+                <h2 id="nav-rooms-heading" class="nav-section-heading" style="margin:0">Rooms</h2>
+                <%= link_to new_room_path,
+                      style: "color:var(--rl-text-muted);display:flex;border-radius:4px",
+                      aria: { label: "Create new room" } do %>
+                  <svg aria-hidden="true" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4"/>
+                  </svg>
+                <% end %>
+              </div>
+              <ul role="list" style="margin:.25rem 0 0;padding:0 .5rem;list-style:none">
+                <% current_user.rooms.by_name.each do |room| %>
+                  <li>
+                    <%= link_to room_path(room),
+                          class: "nav-item #{"active" if @room&.slug == room.slug}",
+                          aria: { current: @room&.slug == room.slug ? "page" : nil,
+                                  label: "#{room.room_type == 'voice' ? 'Voice room' : 'Text room'}: #{room.name}" } do %>
+                      <span aria-hidden="true" style="flex-shrink:0">
+                        <%= room.voice? ? "🔊" : (room.announcement? ? "📢" : "#") %>
+                      </span>
+                      <span style="overflow:hidden;text-overflow:ellipsis;white-space:nowrap"><%= room.name %></span>
+                    <% end %>
+                  </li>
+                <% end %>
+              </ul>
+            </section>
+
+            <%# Direct Messages %>
+            <section aria-labelledby="nav-dms-heading" style="margin-top:1.5rem">
+              <h2 id="nav-dms-heading" class="nav-section-heading">Direct Messages</h2>
+              <% dm_partners = (current_user.sent_direct_messages.includes(:recipient).map(&:recipient) +
+                                current_user.received_direct_messages.includes(:sender).map(&:sender))
+                               .uniq.first(10) %>
+              <ul role="list" style="margin:.25rem 0 0;padding:0 .5rem;list-style:none">
+                <% dm_partners.each do |partner| %>
+                  <li>
+                    <%= link_to user_direct_messages_path(partner),
+                          class: "nav-item",
+                          aria: { label: "Direct message with #{partner.display_name}, #{partner.status}" } do %>
+                      <div class="avatar avatar-sm" style="background-color:#{partner.avatar_color}" aria-hidden="true">
+                        <%= partner.initials %>
+                      </div>
+                      <span style="overflow:hidden;text-overflow:ellipsis;white-space:nowrap;flex:1">
+                        <%= partner.display_name %>
+                      </span>
+                      <% if partner.online? %>
+                        <span class="status-dot status-online" aria-label="online" style="flex-shrink:0"></span>
+                      <% end %>
+                    <% end %>
+                  </li>
+                <% end %>
+              </ul>
+            </section>
+          </div>
+
+          <%# User info footer %>
+          <div style="border-top:1px solid var(--rl-border);padding:.75rem;display:flex;align-items:center;gap:.75rem;flex-shrink:0">
+            <div class="avatar avatar-md" style="background-color:<%= current_user.avatar_color %>" aria-hidden="true">
+              <%= current_user.initials %>
+            </div>
+            <div style="flex:1;min-width:0">
+              <p style="font-size:.875rem;font-weight:500;color:var(--rl-text-primary);overflow:hidden;text-overflow:ellipsis;white-space:nowrap">
+                <%= current_user.display_name %>
+              </p>
+              <p style="font-size:.75rem;color:var(--rl-text-muted);text-transform:capitalize">
+                <%= current_user.status %>
+              </p>
+            </div>
+            <%= link_to edit_user_registration_path,
+                  class: "btn-icon",
+                  aria: { label: "Account settings" } do %>
+              <svg aria-hidden="true" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"/>
+                <path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/>
+              </svg>
+            <% end %>
+            <%= button_to destroy_user_session_path,
+                  method: :delete,
+                  class: "btn-icon",
+                  style: "color:var(--rl-text-muted)",
+                  aria: { label: "Sign out of REDLINE" },
+                  form: { "data-turbo": "false" } do %>
+              <svg aria-hidden="true" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"/>
+              </svg>
+            <% end %>
+          </div>
+        </nav>
+
+        <%# Main content %>
+        <main id="main-content"
+              style="flex:1;display:flex;flex-direction:column;overflow:hidden;outline:none"
+              tabindex="-1"
+              aria-label="Main content">
+          <% if notice %>
+            <div role="status" aria-live="polite" aria-atomic="true" class="flash flash-notice">
+              <%= notice %>
+            </div>
+          <% end %>
+          <% if alert %>
+            <div role="alert" aria-live="assertive" aria-atomic="true" class="flash flash-alert">
+              <%= alert %>
+            </div>
+          <% end %>
+          <%= yield %>
+        </main>
+      </div>
+
+    <% else %>
+      <%# Unauthenticated — centered auth layout %>
+      <main id="main-content" tabindex="-1">
+        <% if notice %>
+          <div role="status" aria-live="polite"
+               style="position:fixed;top:1rem;right:1rem;z-index:50;padding:.75rem 1rem;
+                      background:rgb(20,83,45);border:1px solid #15803d;color:#bbf7d0;
+                      font-size:.875rem;border-radius:.75rem;max-width:24rem">
+            <%= notice %>
+          </div>
+        <% end %>
+        <% if alert %>
+          <div role="alert" aria-live="assertive"
+               style="position:fixed;top:1rem;right:1rem;z-index:50;padding:.75rem 1rem;
+                      background:rgb(127,29,29);border:1px solid #b91c1c;color:#fecaca;
+                      font-size:.875rem;border-radius:.75rem;max-width:24rem">
+            <%= alert %>
+          </div>
+        <% end %>
+        <%= yield %>
+      </main>
+    <% end %>
+  </body>
+</html>

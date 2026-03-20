@@ -1,0 +1,108 @@
+<% content_for :title, "Account Settings" %>
+
+<div style="max-width:32rem;padding:1.5rem;overflow-y:auto;flex:1">
+  <h1 style="font-size:1.25rem;font-weight:600;color:var(--rl-text-primary);margin-bottom:1.5rem">
+    Account Settings
+  </h1>
+
+  <%= form_for(resource, as: resource_name, url: registration_path(resource_name),
+               html: { method: :put, novalidate: false }) do |f| %>
+
+    <% if resource.errors.any? %>
+      <div role="alert" style="margin-bottom:1.25rem;padding:1rem;background:rgba(127,29,29,.3);border:1px solid #b91c1c;border-radius:.5rem">
+        <ul style="list-style:disc;list-style-position:inside;padding:0;margin:0">
+          <% resource.errors.full_messages.each do |msg| %>
+            <li style="font-size:.875rem;color:#fca5a5"><%= msg %></li>
+          <% end %>
+        </ul>
+      </div>
+    <% end %>
+
+    <div style="display:flex;flex-direction:column;gap:1rem">
+      <div>
+        <%= f.label :display_name, class: "form-label" %>
+        <%= f.text_field :display_name, class: "input-field", autocomplete: "nickname",
+              minlength: 2, maxlength: 32, required: true, "aria-required": "true" %>
+      </div>
+
+      <div>
+        <%= f.label :email, class: "form-label" %>
+        <%= f.email_field :email, class: "input-field", autocomplete: "email",
+              required: true, "aria-required": "true" %>
+      </div>
+
+      <div>
+        <%= f.label :bio, class: "form-label" %>
+        <%= f.text_area :bio, class: "input-field", rows: 3, placeholder: "Tell people about yourself" %>
+      </div>
+
+      <fieldset style="border:1px solid var(--rl-border);border-radius:.5rem;padding:1rem">
+        <legend style="font-size:.875rem;font-weight:500;color:var(--rl-text-secondary);padding:0 .25rem">
+          Avatar Color
+        </legend>
+        <div style="display:flex;flex-wrap:wrap;gap:.75rem;margin-top:.5rem">
+          <% User::AVATAR_COLORS.each do |color| %>
+            <label style="cursor:pointer">
+              <%= f.radio_button :avatar_color, color,
+                    style: "position:absolute;opacity:0;width:0;height:0",
+                    id: "avatar-color-#{color.delete('#')}" %>
+              <div style="width:2.5rem;height:2.5rem;border-radius:50%;background:#{color};
+                          border:3px solid #{resource.avatar_color == color ? 'white' : 'transparent'};
+                          transition:border-color .15s"
+                   title="Avatar colour <%= color %>"
+                   aria-label="Avatar colour <%= color %>">
+              </div>
+            </label>
+          <% end %>
+        </div>
+      </fieldset>
+
+      <hr style="border:none;border-top:1px solid var(--rl-border);margin:.5rem 0">
+      <h2 style="font-size:1rem;font-weight:600;color:var(--rl-text-primary)">Change Password</h2>
+      <p style="font-size:.75rem;color:var(--rl-text-muted)">Leave blank to keep your current password.</p>
+
+      <div>
+        <%= f.label :password, "New Password", class: "form-label" %>
+        <%= f.password_field :password, class: "input-field",
+              autocomplete: "new-password", minlength: 12,
+              "aria-describedby": "new-pw-hint" %>
+        <p id="new-pw-hint" class="form-hint">Minimum 12 characters.</p>
+      </div>
+
+      <div>
+        <%= f.label :password_confirmation, "Confirm New Password", class: "form-label" %>
+        <%= f.password_field :password_confirmation, class: "input-field",
+              autocomplete: "new-password" %>
+      </div>
+
+      <div>
+        <%= f.label :current_password, class: "form-label" do %>
+          Current Password
+          <span style="color:var(--rl-danger)" aria-hidden="true">*</span>
+          <span class="sr-only">(required to save changes)</span>
+        <% end %>
+        <%= f.password_field :current_password, class: "input-field",
+              autocomplete: "current-password", required: true,
+              "aria-required": "true",
+              "aria-describedby": "current-pw-hint" %>
+        <p id="current-pw-hint" class="form-hint">Required to confirm any changes.</p>
+      </div>
+
+      <div style="display:flex;gap:.75rem;padding-top:.5rem">
+        <%= f.submit "Save Changes", class: "btn btn-primary" %>
+        <%= link_to "Cancel", rooms_path, class: "btn btn-ghost" %>
+      </div>
+    </div>
+  <% end %>
+
+  <div style="margin-top:2rem;padding-top:1.5rem;border-top:1px solid var(--rl-border)">
+    <h2 style="font-size:.875rem;font-weight:600;color:var(--rl-danger);margin-bottom:.75rem">
+      Danger Zone
+    </h2>
+    <%= button_to "Delete Account", registration_path(resource_name),
+          method: :delete,
+          class: "btn btn-danger",
+          data: { confirm: "Are you sure? This will permanently delete your account and all your data." },
+          form: { "data-turbo-confirm": "Are you sure? This cannot be undone." } %>
+  </div>
+</div>

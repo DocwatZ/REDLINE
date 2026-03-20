@@ -1,0 +1,28 @@
+# Pin npm packages by running ./bin/importmap
+
+pin "application", preload: true
+pin "@hotwired/turbo-rails", to: "turbo.min.js", preload: true
+pin "@hotwired/stimulus", to: "stimulus.min.js", preload: true
+pin "@hotwired/stimulus-loading", to: "stimulus-loading.js", preload: true
+pin "@rails/actioncable", to: "actioncable.esm.js", preload: true
+
+# Application controllers
+pin "controllers/application", to: "controllers/application.js"
+pin "controllers/index", to: "controllers/index.js"
+pin "controllers/chat_controller", to: "controllers/chat_controller.js"
+pin "controllers/dm_chat_controller", to: "controllers/dm_chat_controller.js"
+pin "controllers/message_input_controller", to: "controllers/message_input_controller.js"
+pin "controllers/dm_input_controller", to: "controllers/dm_input_controller.js"
+pin "controllers/livekit_controller", to: "controllers/livekit_controller.js"
+pin "controllers/password_toggle_controller", to: "controllers/password_toggle_controller.js"
+pin "controllers/sidebar_controller", to: "controllers/sidebar_controller.js"
+
+# Channels
+pin "channels/consumer", to: "channels/consumer.js"
+pin "channels/index", to: "channels/index.js"
+pin "channels/presence_channel", to: "channels/presence_channel.js"
+pin "controllers", to: "controllers/index.js"
+pin "channels", to: "channels/index.js"
+
+# LiveKit client (loaded dynamically by livekit_controller)
+pin "livekit-client", to: "https://cdn.jsdelivr.net/npm/livekit-client@2.5.5/dist/livekit-client.esm.mjs", preload: false

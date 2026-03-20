@@ -1,0 +1,33 @@
+# PostgreSQL. Versions 9.3 and up are supported.
+#
+# Install the pg driver:
+#   gem install pg
+# On macOS with Homebrew:
+#   gem install pg -- --with-pg-config=/usr/local/bin/pg_config
+# On Windows:
+#   gem install pg
+#       Choose the win32 build.
+#       Install PostgreSQL and put its /bin directory on your path.
+#
+# Configure Using Gemfile
+# gem "pg"
+#
+default: &default
+  adapter: postgresql
+  encoding: unicode
+  pool: <%= ENV.fetch("RAILS_MAX_THREADS") { 5 } %>
+  url: <%= ENV["DATABASE_URL"] %>
+
+development:
+  <<: *default
+  database: redline_development
+  url: <%= ENV.fetch("DATABASE_URL") { "postgresql://localhost/redline_development" } %>
+
+test:
+  <<: *default
+  database: redline_test
+  url: <%= ENV.fetch("TEST_DATABASE_URL") { "postgresql://localhost/redline_test" } %>
+
+production:
+  <<: *default
+  url: <%= ENV["DATABASE_URL"] %>

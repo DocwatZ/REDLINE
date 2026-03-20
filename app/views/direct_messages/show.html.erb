@@ -1,0 +1,85 @@
+<% content_for :title, "DM · #{@partner.display_name}" %>
+
+<div class="flex flex-col h-full">
+  <%# Header %>
+  <header class="h-14 border-b border-border px-4 flex items-center gap-3 flex-shrink-0">
+    <div class="w-8 h-8 rounded-full flex items-center justify-center
+                text-white text-xs font-bold flex-shrink-0"
+         style="background-color: <%= @partner.avatar_color %>"
+         aria-hidden="true">
+      <%= @partner.initials %>
+    </div>
+    <div class="flex-1 min-w-0">
+      <h1 class="font-semibold text-primary truncate"><%= @partner.display_name %></h1>
+      <p class="text-xs text-muted capitalize"><%= @partner.status %></p>
+    </div>
+    <% if @partner.email.present? %>
+      <span class="text-xs text-muted hidden sm:block"><%= @partner.email %></span>
+    <% end %>
+  </header>
+
+  <%# Messages %>
+  <div id="dm-messages"
+       class="flex-1 overflow-y-auto p-4 space-y-1"
+       role="log"
+       aria-live="polite"
+       aria-label="Direct messages with <%= @partner.display_name %>"
+       aria-relevant="additions"
+       data-controller="dm-chat"
+       data-dm-chat-partner-id-value="<%= @partner.id %>">
+
+    <% if @messages.empty? %>
+      <div class="flex flex-col items-center justify-center h-full text-center" role="status">
+        <div class="w-16 h-16 rounded-full flex items-center justify-center text-white text-2xl font-bold mb-4"
+             style="background-color: <%= @partner.avatar_color %>"
+             aria-hidden="true">
+          <%= @partner.initials %>
+        </div>
+        <h2 class="text-lg font-semibold text-primary"><%= @partner.display_name %></h2>
+        <p class="text-muted text-sm mt-1">This is the beginning of your conversation.</p>
+      </div>
+    <% end %>
+
+    <% @messages.each do |dm| %>
+      <%= render "direct_messages/message", dm: dm, current_user: current_user %>
+    <% end %>
+
+    <div id="dm-messages-end" aria-hidden="true"></div>
+  </div>
+
+  <%# Input %>
+  <div class="border-t border-border p-3 flex-shrink-0">
+    <form id="dm-form"
+          data-controller="dm-input"
+          data-action="submit->dm-input#send"
+          aria-label="Send a direct message to <%= @partner.display_name %>">
+      <div class="flex items-end gap-2">
+        <div class="flex-1 relative">
+          <label for="dm-body" class="sr-only">
+            Message <%= @partner.display_name %>
+          </label>
+          <textarea id="dm-body"
+                    name="body"
+                    rows="1"
+                    maxlength="4000"
+                    placeholder="Message <%= @partner.display_name %>"
+                    class="input-field w-full resize-none min-h-[44px] max-h-48 py-2.5 leading-snug
+                           scrollbar-thin overflow-y-auto"
+                    aria-label="Direct message input"
+                    aria-describedby="dm-hint"
+                    data-dm-input-target="field"
+                    data-action="keydown->dm-input#handleKeydown
+                                 input->dm-input#autoResize"></textarea>
+          <span id="dm-hint" class="sr-only">Press Enter to send, Shift+Enter for new line</span>
+        </div>
+        <button type="submit"
+                class="btn-accent w-11 h-11 flex items-center justify-center flex-shrink-0"
+                aria-label="Send direct message">
+          <svg aria-hidden="true" class="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">
+            <path d="M2.01 21L23 12 2.01 3 2 10l15 2-15 2z"/>
+          </svg>
+        </button>
+      </div>
+    </form>
+  </div>
+</div>
