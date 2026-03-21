@@ -8,7 +8,7 @@ Security via Obscurity — and by design.
 
 ## 🎯 What is REDLINE?
 
-REDLINE is a production-ready, self-hosted communication platform built for teams and individuals who demand **absolute privacy** and **real-time performance**. Zero telemetry, zero third-party dependencies, your data on your hardware.
+REDLINE is a production-ready, self-hosted communication platform built for teams and individuals who demand **absolute privacy** and **real-time performance**. Zero telemetry, zero third-party dependencies. Your data on your hardware.
 
 ### Core Features
 - 💬 **Real-time text chat** via ActionCable (WebSockets)
