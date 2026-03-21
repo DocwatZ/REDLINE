@@ -1,0 +1,47 @@
+<% content_for :title, "Users" %>
+
+<h1 style="font-size:1.5rem;font-weight:700;color:var(--rl-text-primary);margin-bottom:1.5rem">Users</h1>
+
+<div style="background:var(--rl-surface);border:1px solid var(--rl-border);border-radius:var(--rl-radius-md);overflow:hidden">
+  <table style="width:100%;border-collapse:collapse;font-size:.875rem">
+    <thead>
+      <tr style="border-bottom:1px solid var(--rl-border)">
+        <th style="padding:.75rem 1rem;text-align:left;color:var(--rl-text-muted);font-weight:500;font-size:.75rem;text-transform:uppercase">Username</th>
+        <th style="padding:.75rem 1rem;text-align:left;color:var(--rl-text-muted);font-weight:500;font-size:.75rem;text-transform:uppercase">Display Name</th>
+        <th style="padding:.75rem 1rem;text-align:left;color:var(--rl-text-muted);font-weight:500;font-size:.75rem;text-transform:uppercase">Role</th>
+        <th style="padding:.75rem 1rem;text-align:left;color:var(--rl-text-muted);font-weight:500;font-size:.75rem;text-transform:uppercase">Status</th>
+        <th style="padding:.75rem 1rem;text-align:left;color:var(--rl-text-muted);font-weight:500;font-size:.75rem;text-transform:uppercase">Joined</th>
+        <th style="padding:.75rem 1rem;text-align:left;color:var(--rl-text-muted);font-weight:500;font-size:.75rem;text-transform:uppercase">Actions</th>
+      </tr>
+    </thead>
+    <tbody>
+      <% @users.each do |user| %>
+        <tr style="border-bottom:1px solid var(--rl-border)">
+          <td style="padding:.5rem 1rem;color:var(--rl-text-primary);font-weight:500">
+            <%= link_to user.username, admin_user_path(user), style: "color:var(--rl-accent)" %>
+          </td>
+          <td style="padding:.5rem 1rem;color:var(--rl-text-secondary)"><%= user.display_name %></td>
+          <td style="padding:.5rem 1rem">
+            <span style="padding:.125rem .5rem;border-radius:var(--rl-radius-full);font-size:.75rem;
+                         background:<%= user.admin? ? 'rgba(229,62,62,.15)' : 'rgba(72,187,120,.15)' %>;
+                         color:<%= user.admin? ? 'var(--rl-accent)' : 'var(--rl-success)' %>">
+              <%= user.role %>
+            </span>
+          </td>
+          <td style="padding:.5rem 1rem;color:var(--rl-text-secondary)">
+            <% if user.locked_at? %>
+              <span style="color:var(--rl-danger)">🔒 Locked</span>
+            <% else %>
+              <%= user.status %>
+            <% end %>
+          </td>
+          <td style="padding:.5rem 1rem;color:var(--rl-text-muted)"><%= user.created_at.strftime("%Y-%m-%d") %></td>
+          <td style="padding:.5rem 1rem">
+            <%= link_to "View", admin_user_path(user),
+                  style: "color:var(--rl-text-secondary);font-size:.75rem" %>
+          </td>
+        </tr>
+      <% end %>
+    </tbody>
+  </table>
+</div>

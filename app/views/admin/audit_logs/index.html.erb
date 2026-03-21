@@ -1,0 +1,52 @@
+<% content_for :title, "Audit Logs" %>
+
+<h1 style="font-size:1.5rem;font-weight:700;color:var(--rl-text-primary);margin-bottom:1.5rem">Audit Logs</h1>
+
+<%# Filters %>
+<div style="display:flex;gap:.75rem;margin-bottom:1.5rem">
+  <%= form_with url: admin_audit_logs_path, method: :get, local: true,
+        style: "display:flex;gap:.5rem;align-items:center" do |f| %>
+    <%= f.text_field :action_filter,
+          value: params[:action_filter],
+          class: "input-field",
+          style: "font-size:.875rem;padding:.5rem .75rem;width:16rem",
+          placeholder: "Filter by action (e.g. auth.login)" %>
+    <%= f.submit "Filter",
+          class: "btn",
+          style: "font-size:.875rem;padding:.5rem 1rem" %>
+    <% if params[:action_filter].present? %>
+      <%= link_to "Clear", admin_audit_logs_path,
+            style: "font-size:.875rem;color:var(--rl-text-muted)" %>
+    <% end %>
+  <% end %>
+</div>
+
+<div style="background:var(--rl-surface);border:1px solid var(--rl-border);border-radius:var(--rl-radius-md);overflow:hidden">
+  <table style="width:100%;border-collapse:collapse;font-size:.875rem">
+    <thead>
+      <tr style="border-bottom:1px solid var(--rl-border)">
+        <th style="padding:.75rem 1rem;text-align:left;color:var(--rl-text-muted);font-weight:500;font-size:.75rem;text-transform:uppercase">Time</th>
+        <th style="padding:.75rem 1rem;text-align:left;color:var(--rl-text-muted);font-weight:500;font-size:.75rem;text-transform:uppercase">User</th>
+        <th style="padding:.75rem 1rem;text-align:left;color:var(--rl-text-muted);font-weight:500;font-size:.75rem;text-transform:uppercase">Action</th>
+        <th style="padding:.75rem 1rem;text-align:left;color:var(--rl-text-muted);font-weight:500;font-size:.75rem;text-transform:uppercase">Metadata</th>
+      </tr>
+    </thead>
+    <tbody>
+      <% @audit_logs.each do |log| %>
+        <tr style="border-bottom:1px solid var(--rl-border)">
+          <td style="padding:.5rem 1rem;color:var(--rl-text-muted);white-space:nowrap"><%= log.created_at.strftime("%Y-%m-%d %H:%M:%S") %></td>
+          <td style="padding:.5rem 1rem;color:var(--rl-text-primary)"><%= log.user&.username || "—" %></td>
+          <td style="padding:.5rem 1rem;color:var(--rl-text-secondary)"><%= log.action %></td>
+          <td style="padding:.5rem 1rem;color:var(--rl-text-muted);font-family:monospace;font-size:.75rem;max-width:20rem;overflow:hidden;text-overflow:ellipsis">
+            <%= log.metadata.to_json if log.metadata.present? %>
+          </td>
+        </tr>
+      <% end %>
+      <% if @audit_logs.empty? %>
+        <tr>
+          <td colspan="4" style="padding:1rem;text-align:center;color:var(--rl-text-muted)">No audit logs found.</td>
+        </tr>
+      <% end %>
+    </tbody>
+  </table>
+</div>

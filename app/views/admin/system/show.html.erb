@@ -1,0 +1,23 @@
+<% content_for :title, "System Health" %>
+
+<h1 style="font-size:1.5rem;font-weight:700;color:var(--rl-text-primary);margin-bottom:1.5rem">System Health</h1>
+
+<div style="display:grid;grid-template-columns:repeat(2,1fr);gap:1rem">
+  <% @health.each do |name, result| %>
+    <div style="padding:1.5rem;background:var(--rl-surface);border:1px solid var(--rl-border);border-radius:var(--rl-radius-md)">
+      <div style="display:flex;align-items:center;gap:.75rem;margin-bottom:.5rem">
+        <span style="width:.75rem;height:.75rem;border-radius:50%;background:<%= result.status == :ok ? 'var(--rl-success)' : (result.status == :warn ? 'var(--rl-warning)' : 'var(--rl-danger)') %>"></span>
+        <h2 style="font-size:1.125rem;font-weight:600;color:var(--rl-text-primary);text-transform:capitalize"><%= name %></h2>
+      </div>
+      <p style="font-size:.875rem;color:var(--rl-text-secondary)"><%= result.message %></p>
+      <p style="font-size:.75rem;color:var(--rl-text-muted);margin-top:.25rem">Status: <%= result.status %></p>
+    </div>
+  <% end %>
+</div>
+
+<div style="margin-top:2rem;text-align:center">
+  <p style="font-size:.875rem;color:var(--rl-text-muted)">
+    JSON endpoint available at
+    <%= link_to health_path(format: :json), health_path(format: :json), style: "color:var(--rl-accent)" %>
+  </p>
+</div>

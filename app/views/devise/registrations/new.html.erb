@@ -32,13 +32,30 @@
 
     <div style="display:flex;flex-direction:column;gap:1rem">
       <div>
+        <%= f.label :username, class: "form-label" do %>
+          Username
+          <span style="color:var(--rl-danger)" aria-hidden="true">*</span>
+          <span class="sr-only">(required)</span>
+        <% end %>
+        <%= f.text_field :username,
+              autofocus: true,
+              autocomplete: "username",
+              class: "input-field",
+              required: true,
+              "aria-required": "true",
+              "aria-describedby": "un-hint",
+              minlength: 3,
+              maxlength: 32 %>
+        <p id="un-hint" class="form-hint">3–32 characters. Letters, numbers, hyphens, underscores.</p>
+      </div>
+
+      <div>
         <%= f.label :display_name, class: "form-label" do %>
           Display Name
           <span style="color:var(--rl-danger)" aria-hidden="true">*</span>
           <span class="sr-only">(required)</span>
         <% end %>
         <%= f.text_field :display_name,
-              autofocus: true,
               autocomplete: "nickname",
               class: "input-field",
               required: true,
@@ -52,14 +69,13 @@
       <div>
         <%= f.label :email, class: "form-label" do %>
           Email address
-          <span style="color:var(--rl-danger)" aria-hidden="true">*</span>
-          <span class="sr-only">(required)</span>
+          <span style="color:var(--rl-text-muted);font-weight:400">(optional)</span>
         <% end %>
         <%= f.email_field :email,
               autocomplete: "email",
               class: "input-field",
-              required: true,
-              "aria-required": "true" %>
+              "aria-describedby": "email-hint" %>
+        <p id="email-hint" class="form-hint">Optional — not required for account creation.</p>
       </div>
 
       <div>
@@ -110,6 +126,24 @@
       <%= f.submit "Create Account",
             class: "btn btn-primary",
             style: "width:100%;margin-top:.5rem;justify-content:center" %>
+    </div>
+  <% end %>
+
+  <%# OAuth providers %>
+  <% if devise_mapping.omniauthable? && resource_class.omniauth_providers.any? %>
+    <div style="margin-top:1.25rem;padding-top:1.25rem;border-top:1px solid var(--rl-border)">
+      <p style="text-align:center;font-size:.75rem;color:var(--rl-text-muted);margin-bottom:.75rem">Or sign up with</p>
+      <div style="display:flex;gap:.5rem;justify-content:center">
+        <% resource_class.omniauth_providers.each do |provider| %>
+          <%= button_to omniauth_authorize_path(resource_name, provider),
+                method: :post,
+                class: "btn",
+                style: "flex:1;justify-content:center",
+                data: { turbo: false } do %>
+            <%= provider.to_s.titleize %>
+          <% end %>
+        <% end %>
+      </div>
     </div>
   <% end %>
 

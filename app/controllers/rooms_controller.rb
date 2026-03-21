@@ -73,7 +73,7 @@ class RoomsController < ApplicationController
   end
 
   def room_params
-    params.require(:room).permit(:name, :description, :room_type, :private)
+    params.require(:room).permit(:name, :description, :room_type, :private, :e2ee_enabled)
   end
 
   def require_membership!

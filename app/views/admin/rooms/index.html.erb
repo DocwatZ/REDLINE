@@ -1,0 +1,43 @@
+<% content_for :title, "Rooms" %>
+
+<h1 style="font-size:1.5rem;font-weight:700;color:var(--rl-text-primary);margin-bottom:1.5rem">Rooms</h1>
+
+<div style="background:var(--rl-surface);border:1px solid var(--rl-border);border-radius:var(--rl-radius-md);overflow:hidden">
+  <table style="width:100%;border-collapse:collapse;font-size:.875rem">
+    <thead>
+      <tr style="border-bottom:1px solid var(--rl-border)">
+        <th style="padding:.75rem 1rem;text-align:left;color:var(--rl-text-muted);font-weight:500;font-size:.75rem;text-transform:uppercase">Name</th>
+        <th style="padding:.75rem 1rem;text-align:left;color:var(--rl-text-muted);font-weight:500;font-size:.75rem;text-transform:uppercase">Type</th>
+        <th style="padding:.75rem 1rem;text-align:left;color:var(--rl-text-muted);font-weight:500;font-size:.75rem;text-transform:uppercase">Owner</th>
+        <th style="padding:.75rem 1rem;text-align:left;color:var(--rl-text-muted);font-weight:500;font-size:.75rem;text-transform:uppercase">E2EE</th>
+        <th style="padding:.75rem 1rem;text-align:left;color:var(--rl-text-muted);font-weight:500;font-size:.75rem;text-transform:uppercase">Created</th>
+        <th style="padding:.75rem 1rem;text-align:left;color:var(--rl-text-muted);font-weight:500;font-size:.75rem;text-transform:uppercase">Actions</th>
+      </tr>
+    </thead>
+    <tbody>
+      <% @rooms.each do |room| %>
+        <tr style="border-bottom:1px solid var(--rl-border)">
+          <td style="padding:.5rem 1rem;color:var(--rl-text-primary);font-weight:500">
+            <%= link_to room.name, admin_room_path(room), style: "color:var(--rl-accent)" %>
+          </td>
+          <td style="padding:.5rem 1rem;color:var(--rl-text-secondary)"><%= room.room_type %></td>
+          <td style="padding:.5rem 1rem;color:var(--rl-text-secondary)"><%= room.owner.username %></td>
+          <td style="padding:.5rem 1rem">
+            <% if room.e2ee_enabled? %>
+              <span style="color:var(--rl-success)">🔒 Yes</span>
+            <% else %>
+              <span style="color:var(--rl-text-muted)">—</span>
+            <% end %>
+          </td>
+          <td style="padding:.5rem 1rem;color:var(--rl-text-muted)"><%= room.created_at.strftime("%Y-%m-%d") %></td>
+          <td style="padding:.5rem 1rem">
+            <%= button_to "Delete", admin_room_path(room),
+                  method: :delete,
+                  style: "color:var(--rl-danger);font-size:.75rem;background:none;border:none;cursor:pointer",
+                  data: { turbo_confirm: "Delete room '#{room.name}'? This cannot be undone." } %>
+          </td>
+        </tr>
+      <% end %>
+    </tbody>
+  </table>
+</div>

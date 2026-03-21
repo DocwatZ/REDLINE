@@ -1,0 +1,55 @@
+<% content_for :title, "Recovery Code Login" %>
+
+<div class="auth-card">
+  <div class="auth-brand">
+    <div class="auth-brand-icon" aria-hidden="true">
+      <svg width="32" height="32" viewBox="0 0 32 32" fill="none">
+        <text x="6" y="23" font-family="system-ui,sans-serif" font-weight="700" font-size="18" fill="#e53e3e">R</text>
+        <text x="17" y="23" font-family="system-ui,sans-serif" font-weight="700" font-size="18" fill="#f0f2f7">L</text>
+      </svg>
+    </div>
+    <h1 style="font-size:1.5rem;font-weight:700;color:var(--rl-text-primary)">Recovery Login</h1>
+    <p style="color:var(--rl-text-muted);font-size:.875rem;margin-top:.25rem">
+      Use a one-time recovery code to sign in
+    </p>
+  </div>
+
+  <% if flash[:alert] %>
+    <div role="alert" style="margin-bottom:1.25rem;padding:.75rem;background:rgba(127,29,29,.3);border:1px solid #b91c1c;border-radius:.5rem;color:#fca5a5;font-size:.875rem">
+      <%= flash[:alert] %>
+    </div>
+  <% end %>
+
+  <%= form_with url: recovery_session_path, method: :post, local: true do |f| %>
+    <div style="display:flex;flex-direction:column;gap:1rem">
+      <div>
+        <%= f.label :login, "Username or Email", class: "form-label" %>
+        <%= f.text_field :login,
+              autofocus: true,
+              autocomplete: "username",
+              class: "input-field",
+              required: true %>
+      </div>
+
+      <div>
+        <%= f.label :recovery_code, "Recovery Code", class: "form-label" %>
+        <%= f.text_field :recovery_code,
+              autocomplete: "off",
+              class: "input-field",
+              required: true,
+              placeholder: "a1b2c-d3e4f",
+              "aria-describedby": "rc-hint" %>
+        <p id="rc-hint" class="form-hint">Enter one of your recovery codes (with or without dashes).</p>
+      </div>
+
+      <%= f.submit "Sign in with Recovery Code",
+            class: "btn btn-primary",
+            style: "width:100%;margin-top:.5rem;justify-content:center" %>
+    </div>
+  <% end %>
+
+  <div style="margin-top:1.5rem;padding-top:1.25rem;border-top:1px solid var(--rl-border);text-align:center">
+    <%= link_to "Back to sign in", new_user_session_path,
+          style: "font-size:.875rem;color:var(--rl-text-muted)" %>
+  </div>
+</div>

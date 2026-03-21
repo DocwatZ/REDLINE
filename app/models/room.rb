@@ -5,8 +5,9 @@ class Room < ApplicationRecord
   has_many :room_memberships, dependent: :destroy
   has_many :members, through: :room_memberships, source: :user
   has_many :messages, dependent: :destroy
+  has_many :room_keys, dependent: :destroy
 
-  ROOM_TYPES = %w[text voice announcement].freeze
+  ROOM_TYPES = %w[text voice announcement dm public private].freeze
 
   validates :name, presence: true, length: { minimum: 2, maximum: 64 },
             format: { with: /\A[a-zA-Z0-9\-_\s]+\z/, message: "only letters, numbers, spaces, hyphens, underscores" }
@@ -18,6 +19,7 @@ class Room < ApplicationRecord
 
   scope :public_rooms, -> { where(private: false) }
   scope :by_name, -> { order(:name) }
+  scope :e2ee, -> { where(e2ee_enabled: true) }
 
   def text?
     room_type == "text"
@@ -29,6 +31,14 @@ class Room < ApplicationRecord
 
   def announcement?
     room_type == "announcement"
+  end
+
+  def dm?
+    room_type == "dm"
+  end
+
+  def e2ee?
+    e2ee_enabled?
   end
 
   def member?(user)

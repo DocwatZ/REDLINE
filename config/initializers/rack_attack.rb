@@ -7,10 +7,10 @@ class Rack::Attack
     req.ip if req.path == "/users/sign_in" && req.post?
   end
 
-  # Throttle sign-in attempts by email
-  throttle("logins/email", limit: 5, period: 20.seconds) do |req|
+  # Throttle sign-in attempts by login identifier
+  throttle("logins/login", limit: 5, period: 20.seconds) do |req|
     if req.path == "/users/sign_in" && req.post?
-      req.params["user"]["email"].to_s.downcase.gsub(/\s+/, "").first(100)
+      req.params.dig("user", "login").to_s.downcase.gsub(/\s+/, "").first(100)
     end
   end
 
@@ -22,6 +22,16 @@ class Rack::Attack
   # Throttle password reset requests
   throttle("passwords/ip", limit: 5, period: 20.seconds) do |req|
     req.ip if req.path == "/users/password" && req.post?
+  end
+
+  # Throttle recovery code login attempts
+  throttle("recovery/ip", limit: 3, period: 60.seconds) do |req|
+    req.ip if req.path == "/recovery_login" && req.post?
+  end
+
+  # Throttle admin actions
+  throttle("admin/ip", limit: 30, period: 1.minute) do |req|
+    req.ip if req.path.start_with?("/admin")
   end
 
   # Throttle general API requests

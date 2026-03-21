@@ -29,14 +29,14 @@
 
     <div style="display:flex;flex-direction:column;gap:1rem">
       <div>
-        <%= f.label :email, class: "form-label" do %>
-          Email address
+        <%= f.label :login, class: "form-label" do %>
+          Username or Email
           <span style="color:var(--rl-danger)" aria-hidden="true">*</span>
           <span class="sr-only">(required)</span>
         <% end %>
-        <%= f.email_field :email,
+        <%= f.text_field :login,
               autofocus: true,
-              autocomplete: "email",
+              autocomplete: "username",
               class: "input-field",
               required: true,
               "aria-required": "true" %>
@@ -85,6 +85,29 @@
             style: "width:100%;margin-top:.5rem;justify-content:center" %>
     </div>
   <% end %>
+
+  <%# OAuth providers %>
+  <% if devise_mapping.omniauthable? && resource_class.omniauth_providers.any? %>
+    <div style="margin-top:1.25rem;padding-top:1.25rem;border-top:1px solid var(--rl-border)">
+      <p style="text-align:center;font-size:.75rem;color:var(--rl-text-muted);margin-bottom:.75rem">Or sign in with</p>
+      <div style="display:flex;gap:.5rem;justify-content:center">
+        <% resource_class.omniauth_providers.each do |provider| %>
+          <%= button_to omniauth_authorize_path(resource_name, provider),
+                method: :post,
+                class: "btn",
+                style: "flex:1;justify-content:center",
+                data: { turbo: false } do %>
+            <%= provider.to_s.titleize %>
+          <% end %>
+        <% end %>
+      </div>
+    </div>
+  <% end %>
+
+  <div style="margin-top:1.25rem;text-align:center">
+    <%= link_to "Sign in with recovery code", new_recovery_session_path,
+          style: "font-size:.875rem;color:var(--rl-text-muted)" %>
+  </div>
 
   <div style="margin-top:1.5rem;padding-top:1.25rem;border-top:1px solid var(--rl-border);text-align:center">
     <%= render "devise/shared/links" %>

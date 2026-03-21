@@ -1,0 +1,39 @@
+<% content_for :title, @room.name %>
+
+<div style="margin-bottom:1.5rem">
+  <%= link_to "← Back to Rooms", admin_rooms_path, style: "font-size:.875rem;color:var(--rl-text-muted)" %>
+</div>
+
+<h1 style="font-size:1.5rem;font-weight:700;color:var(--rl-text-primary);margin-bottom:.25rem"><%= @room.name %></h1>
+<p style="color:var(--rl-text-muted);font-size:.875rem;margin-bottom:2rem">
+  <%= @room.room_type %> · <%= @room.private? ? "Private" : "Public" %> · <%= @message_count %> messages
+  <% if @room.e2ee_enabled? %>
+    · 🔒 E2EE
+  <% end %>
+</p>
+
+<div style="display:grid;grid-template-columns:1fr 1fr;gap:1.5rem">
+  <div style="background:var(--rl-surface);border:1px solid var(--rl-border);border-radius:var(--rl-radius-md);padding:1.25rem">
+    <h2 style="font-size:.875rem;font-weight:600;color:var(--rl-text-primary);margin-bottom:1rem">Members (<%= @members.count %>)</h2>
+    <ul style="list-style:none;padding:0;margin:0">
+      <% @members.each do |member| %>
+        <li style="padding:.375rem 0;display:flex;align-items:center;gap:.5rem;border-bottom:1px solid var(--rl-border)">
+          <div class="avatar avatar-sm" style="background-color:<%= member.avatar_color %>" aria-hidden="true">
+            <%= member.initials %>
+          </div>
+          <span style="color:var(--rl-text-primary);font-size:.875rem"><%= member.display_name %></span>
+          <span style="color:var(--rl-text-muted);font-size:.75rem;margin-left:auto">@<%= member.username %></span>
+        </li>
+      <% end %>
+    </ul>
+  </div>
+
+  <div style="background:var(--rl-surface);border:1px solid var(--rl-border);border-radius:var(--rl-radius-md);padding:1.25rem">
+    <h2 style="font-size:.875rem;font-weight:600;color:var(--rl-text-primary);margin-bottom:1rem">Actions</h2>
+    <%= button_to "Delete Room", admin_room_path(@room),
+          method: :delete,
+          class: "btn",
+          style: "color:var(--rl-danger);width:100%;justify-content:center",
+          data: { turbo_confirm: "Delete '#{@room.name}'? This permanently removes all messages." } %>
+  </div>
+</div>

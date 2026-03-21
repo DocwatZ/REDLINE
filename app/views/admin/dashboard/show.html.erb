@@ -1,0 +1,61 @@
+<% content_for :title, "Dashboard" %>
+
+<h1 style="font-size:1.5rem;font-weight:700;color:var(--rl-text-primary);margin-bottom:1.5rem">Admin Dashboard</h1>
+
+<%# Stats %>
+<div style="display:grid;grid-template-columns:repeat(3,1fr);gap:1rem;margin-bottom:2rem">
+  <div style="padding:1.25rem;background:var(--rl-surface);border:1px solid var(--rl-border);border-radius:var(--rl-radius-md)">
+    <p style="font-size:.75rem;color:var(--rl-text-muted);text-transform:uppercase;letter-spacing:.05em">Users</p>
+    <p style="font-size:2rem;font-weight:700;color:var(--rl-text-primary)"><%= @user_count %></p>
+  </div>
+  <div style="padding:1.25rem;background:var(--rl-surface);border:1px solid var(--rl-border);border-radius:var(--rl-radius-md)">
+    <p style="font-size:.75rem;color:var(--rl-text-muted);text-transform:uppercase;letter-spacing:.05em">Rooms</p>
+    <p style="font-size:2rem;font-weight:700;color:var(--rl-text-primary)"><%= @room_count %></p>
+  </div>
+  <div style="padding:1.25rem;background:var(--rl-surface);border:1px solid var(--rl-border);border-radius:var(--rl-radius-md)">
+    <p style="font-size:.75rem;color:var(--rl-text-muted);text-transform:uppercase;letter-spacing:.05em">Messages</p>
+    <p style="font-size:2rem;font-weight:700;color:var(--rl-text-primary)"><%= @message_count %></p>
+  </div>
+</div>
+
+<%# System Health %>
+<h2 style="font-size:1.125rem;font-weight:600;color:var(--rl-text-primary);margin-bottom:.75rem">System Health</h2>
+<div style="display:grid;grid-template-columns:repeat(4,1fr);gap:.75rem;margin-bottom:2rem">
+  <% @health.each do |name, result| %>
+    <div style="padding:1rem;background:var(--rl-surface);border:1px solid var(--rl-border);border-radius:var(--rl-radius-md)">
+      <div style="display:flex;align-items:center;gap:.5rem;margin-bottom:.25rem">
+        <span style="width:.5rem;height:.5rem;border-radius:50%;background:<%= result.status == :ok ? 'var(--rl-success)' : (result.status == :warn ? 'var(--rl-warning)' : 'var(--rl-danger)') %>"></span>
+        <span style="font-size:.875rem;font-weight:500;color:var(--rl-text-primary);text-transform:capitalize"><%= name %></span>
+      </div>
+      <p style="font-size:.75rem;color:var(--rl-text-muted)"><%= result.message %></p>
+    </div>
+  <% end %>
+</div>
+
+<%# Recent Audit Logs %>
+<h2 style="font-size:1.125rem;font-weight:600;color:var(--rl-text-primary);margin-bottom:.75rem">Recent Activity</h2>
+<div style="background:var(--rl-surface);border:1px solid var(--rl-border);border-radius:var(--rl-radius-md);overflow:hidden">
+  <table style="width:100%;border-collapse:collapse;font-size:.875rem">
+    <thead>
+      <tr style="border-bottom:1px solid var(--rl-border)">
+        <th style="padding:.75rem 1rem;text-align:left;color:var(--rl-text-muted);font-weight:500;font-size:.75rem;text-transform:uppercase">Time</th>
+        <th style="padding:.75rem 1rem;text-align:left;color:var(--rl-text-muted);font-weight:500;font-size:.75rem;text-transform:uppercase">User</th>
+        <th style="padding:.75rem 1rem;text-align:left;color:var(--rl-text-muted);font-weight:500;font-size:.75rem;text-transform:uppercase">Action</th>
+      </tr>
+    </thead>
+    <tbody>
+      <% @recent_logs.each do |log| %>
+        <tr style="border-bottom:1px solid var(--rl-border)">
+          <td style="padding:.5rem 1rem;color:var(--rl-text-secondary)"><%= log.created_at.strftime("%Y-%m-%d %H:%M") %></td>
+          <td style="padding:.5rem 1rem;color:var(--rl-text-primary)"><%= log.user&.username || "—" %></td>
+          <td style="padding:.5rem 1rem;color:var(--rl-text-secondary)"><%= log.action %></td>
+        </tr>
+      <% end %>
+      <% if @recent_logs.empty? %>
+        <tr>
+          <td colspan="3" style="padding:1rem;text-align:center;color:var(--rl-text-muted)">No activity yet.</td>
+        </tr>
+      <% end %>
+    </tbody>
+  </table>
+</div>

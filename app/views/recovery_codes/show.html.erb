@@ -1,0 +1,36 @@
+<% content_for :title, "Recovery Codes" %>
+
+<div class="auth-card" style="max-width:32rem">
+  <div class="auth-brand">
+    <h1 style="font-size:1.5rem;font-weight:700;color:var(--rl-text-primary)">Your Recovery Codes</h1>
+    <p style="color:var(--rl-text-muted);font-size:.875rem;margin-top:.25rem">
+      Save these codes in a safe place. Each code can only be used once.
+    </p>
+  </div>
+
+  <div role="alert" style="margin-bottom:1.25rem;padding:.75rem;background:rgba(214,158,46,.15);border:1px solid rgba(214,158,46,.4);border-radius:.5rem;color:var(--rl-warning);font-size:.875rem">
+    ⚠️ These codes will NOT be shown again. Store them securely.
+  </div>
+
+  <div style="background:var(--rl-surface-elevated);padding:1.25rem;border-radius:.5rem;border:1px solid var(--rl-border)">
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:.5rem;font-family:monospace;font-size:1rem;color:var(--rl-text-primary)">
+      <% @recovery_codes.each do |code| %>
+        <div style="padding:.375rem .5rem;background:var(--rl-base);border-radius:.25rem;text-align:center">
+          <%= code %>
+        </div>
+      <% end %>
+    </div>
+  </div>
+
+  <div style="margin-top:1.5rem;display:flex;gap:.75rem">
+    <%= link_to "Continue to REDLINE", rooms_path,
+          class: "btn btn-primary",
+          style: "flex:1;justify-content:center" %>
+  </div>
+
+  <div style="margin-top:1rem;text-align:center">
+    <p style="font-size:.75rem;color:var(--rl-text-muted)">
+      You can regenerate codes from your account settings.
+    </p>
+  </div>
+</div>

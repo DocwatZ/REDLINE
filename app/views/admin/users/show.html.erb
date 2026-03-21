@@ -1,0 +1,119 @@
+<% content_for :title, @user.username %>
+
+<div style="margin-bottom:1.5rem">
+  <%= link_to "← Back to Users", admin_users_path, style: "font-size:.875rem;color:var(--rl-text-muted)" %>
+</div>
+
+<div style="display:flex;align-items:center;gap:1rem;margin-bottom:2rem">
+  <div class="avatar avatar-lg" style="background-color:<%= @user.avatar_color %>" aria-hidden="true">
+    <%= @user.initials %>
+  </div>
+  <div>
+    <h1 style="font-size:1.5rem;font-weight:700;color:var(--rl-text-primary)"><%= @user.display_name %></h1>
+    <p style="font-size:.875rem;color:var(--rl-text-muted)">@<%= @user.username %> · <%= @user.role %></p>
+  </div>
+</div>
+
+<%# User Details %>
+<div style="display:grid;grid-template-columns:1fr 1fr;gap:1.5rem;margin-bottom:2rem">
+  <div style="background:var(--rl-surface);border:1px solid var(--rl-border);border-radius:var(--rl-radius-md);padding:1.25rem">
+    <h2 style="font-size:.875rem;font-weight:600;color:var(--rl-text-primary);margin-bottom:1rem">Account Info</h2>
+    <dl style="font-size:.875rem;display:flex;flex-direction:column;gap:.5rem">
+      <div style="display:flex;justify-content:space-between">
+        <dt style="color:var(--rl-text-muted)">Email</dt>
+        <dd style="color:var(--rl-text-secondary)"><%= @user.email.present? ? @user.email : "—" %></dd>
+      </div>
+      <div style="display:flex;justify-content:space-between">
+        <dt style="color:var(--rl-text-muted)">Status</dt>
+        <dd style="color:var(--rl-text-secondary)"><%= @user.locked_at? ? "🔒 Locked" : @user.status %></dd>
+      </div>
+      <div style="display:flex;justify-content:space-between">
+        <dt style="color:var(--rl-text-muted)">Sign-in count</dt>
+        <dd style="color:var(--rl-text-secondary)"><%= @user.sign_in_count %></dd>
+      </div>
+      <div style="display:flex;justify-content:space-between">
+        <dt style="color:var(--rl-text-muted)">Failed attempts</dt>
+        <dd style="color:var(--rl-text-secondary)"><%= @user.failed_attempts %></dd>
+      </div>
+      <div style="display:flex;justify-content:space-between">
+        <dt style="color:var(--rl-text-muted)">Created</dt>
+        <dd style="color:var(--rl-text-secondary)"><%= @user.created_at.strftime("%Y-%m-%d %H:%M") %></dd>
+      </div>
+    </dl>
+  </div>
+
+  <%# Actions Panel %>
+  <div style="background:var(--rl-surface);border:1px solid var(--rl-border);border-radius:var(--rl-radius-md);padding:1.25rem">
+    <h2 style="font-size:.875rem;font-weight:600;color:var(--rl-text-primary);margin-bottom:1rem">Actions</h2>
+    <div style="display:flex;flex-direction:column;gap:.75rem">
+      <% if @user.locked_at? %>
+        <%= button_to "Unlock Account", unlock_admin_user_path(@user),
+              method: :post,
+              class: "btn",
+              style: "justify-content:center;width:100%",
+              data: { turbo_confirm: "Unlock this account?" } %>
+      <% else %>
+        <%= button_to "Lock Account", lock_admin_user_path(@user),
+              method: :post,
+              class: "btn",
+              style: "justify-content:center;width:100%;color:var(--rl-danger)",
+              data: { turbo_confirm: "Lock this account? The user will not be able to sign in." } %>
+      <% end %>
+
+      <div style="border-top:1px solid var(--rl-border);padding-top:.75rem">
+        <p style="font-size:.75rem;color:var(--rl-text-muted);margin-bottom:.5rem">Reset Password (min 12 chars)</p>
+        <%= form_with url: reset_password_admin_user_path(@user), method: :post, local: true,
+              style: "display:flex;gap:.5rem" do |f| %>
+          <%= f.password_field :new_password,
+                class: "input-field",
+                style: "flex:1;font-size:.875rem;padding:.5rem .75rem",
+                placeholder: "New password",
+                minlength: 12,
+                required: true %>
+          <%= f.submit "Reset",
+                class: "btn",
+                style: "font-size:.875rem;padding:.5rem 1rem" %>
+        <% end %>
+      </div>
+    </div>
+  </div>
+</div>
+
+<%# OAuth Identities %>
+<% if @identities.any? %>
+  <h2 style="font-size:1.125rem;font-weight:600;color:var(--rl-text-primary);margin-bottom:.75rem">Linked OAuth Providers</h2>
+  <div style="background:var(--rl-surface);border:1px solid var(--rl-border);border-radius:var(--rl-radius-md);padding:1rem;margin-bottom:2rem">
+    <% @identities.each do |identity| %>
+      <div style="display:flex;justify-content:space-between;padding:.5rem 0;border-bottom:1px solid var(--rl-border)">
+        <span style="color:var(--rl-text-primary);text-transform:capitalize"><%= identity.provider %></span>
+        <span style="color:var(--rl-text-muted);font-size:.875rem">UID: <%= identity.uid %></span>
+      </div>
+    <% end %>
+  </div>
+<% end %>
+
+<%# Recent Activity %>
+<h2 style="font-size:1.125rem;font-weight:600;color:var(--rl-text-primary);margin-bottom:.75rem">Recent Activity</h2>
+<div style="background:var(--rl-surface);border:1px solid var(--rl-border);border-radius:var(--rl-radius-md);overflow:hidden">
+  <table style="width:100%;border-collapse:collapse;font-size:.875rem">
+    <thead>
+      <tr style="border-bottom:1px solid var(--rl-border)">
+        <th style="padding:.75rem 1rem;text-align:left;color:var(--rl-text-muted);font-weight:500;font-size:.75rem">Time</th>
+        <th style="padding:.75rem 1rem;text-align:left;color:var(--rl-text-muted);font-weight:500;font-size:.75rem">Action</th>
+      </tr>
+    </thead>
+    <tbody>
+      <% @audit_logs.each do |log| %>
+        <tr style="border-bottom:1px solid var(--rl-border)">
+          <td style="padding:.5rem 1rem;color:var(--rl-text-muted)"><%= log.created_at.strftime("%Y-%m-%d %H:%M") %></td>
+          <td style="padding:.5rem 1rem;color:var(--rl-text-secondary)"><%= log.action %></td>
+        </tr>
+      <% end %>
+      <% if @audit_logs.empty? %>
+        <tr>
+          <td colspan="2" style="padding:1rem;text-align:center;color:var(--rl-text-muted)">No activity.</td>
+        </tr>
+      <% end %>
+    </tbody>
+  </table>
+</div>

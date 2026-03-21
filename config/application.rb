@@ -38,5 +38,8 @@ module RedlineOnline
 
     # Security headers
     config.force_ssl = false # Managed by reverse proxy in self-hosted setups
+
+    # Audit log IP tracking — privacy-aware, configurable via env
+    config.audit_log_ips = ENV.fetch("AUDIT_LOG_IPS", "false") == "true"
   end
 end
