@@ -674,7 +674,7 @@ If you want the shortest all-UI-friendly path, use this order:
 8. **Browser**: open `http://YOUR-UNRAID-IP:3000`
 9. **Terminal**: promote your first user to admin
 10. **Reverse proxy UI**: add HTTPS and WebSocket support for public access
-11. **Community Apps**: install `ich777/stun-turn-server` and configure LiveKit to use it (Section 9)
+11. **Community Apps**: install `ich777/stun-turn-server` and configure LiveKit to use it ([Section 9](#9-turn-server-setup-ich777stun-turn-server))
 12. **Router**: forward TURN ports (`3478`, `5349`, `49152–65535/udp`) to your Unraid server
 
 ---
@@ -775,7 +775,7 @@ Common causes:
 - `LIVEKIT_API_KEY` and `LIVEKIT_API_SECRET` do not match `livekit.yaml`
 - `LIVEKIT_URL` points to the wrong hostname or protocol
 - `7882/udp` is blocked
-- external clients need TURN/public networking adjustments — see Section 9
+- external clients need TURN/public networking adjustments — see [Section 9](#9-turn-server-setup-ich777stun-turn-server)
 
 ### Voice or video fails only for users outside the LAN
 
@@ -949,7 +949,7 @@ For most Unraid users, the best order is:
 1. Deploy REDLINE with Docker Compose
 2. Validate chat, admin access, and persistence
 3. Add reverse proxy and HTTPS
-4. Deploy `ich777/stun-turn-server` and configure LiveKit to use it (Section 9)
+4. Deploy `ich777/stun-turn-server` and configure LiveKit to use it ([Section 9](#9-turn-server-setup-ich777stun-turn-server))
 5. Validate voice/video from real client devices **outside your LAN** (e.g., on mobile data)
 6. Only then consider porting the deployment into Community Apps templates
 
