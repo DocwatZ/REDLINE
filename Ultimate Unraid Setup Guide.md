@@ -126,6 +126,7 @@ Open the Unraid terminal and run:
 
 ```bash
 cd /mnt/user/appdata/redline
+# Verify the repository URL if REDLINE is ever moved or renamed.
 git clone https://github.com/DocwatZ/REDLINE.git source
 cp source/.env.example compose/.env
 cp source/livekit.yaml compose/livekit.yaml
@@ -152,6 +153,8 @@ The CLI route is easier and less error-prone.
 The repository Compose file uses Docker named volumes. On Unraid, bind mounts are easier to manage and back up.
 
 Edit `/mnt/user/appdata/redline/compose/docker-compose.yml` and use this version:
+
+> The `web` build context below depends on the repository being cloned to `/mnt/user/appdata/redline/source` in section 5.
 
 ```yaml
 services:
@@ -261,12 +264,12 @@ Edit:
 At minimum, set:
 
 ```env
-SECRET_KEY_BASE=replace-with-a-long-random-secret
+SECRET_KEY_BASE=128-character-hex-string-generated-with-openssl
 POSTGRES_DB=redline
 POSTGRES_USER=redline
 POSTGRES_PASSWORD=replace-with-a-strong-password
 REDIS_PASSWORD=replace-with-a-strong-password
-LIVEKIT_URL=ws://YOUR-UNRAID-IP:7880
+LIVEKIT_URL=ws://192.168.1.100:7880
 LIVEKIT_API_KEY=replace-with-your-livekit-key
 LIVEKIT_API_SECRET=replace-with-your-livekit-secret
 DEVISE_MAILER_FROM=redline@yourdomain.com
@@ -322,13 +325,13 @@ rtc:
   udp_port: 7882
 
 keys:
-  YOUR_LIVEKIT_KEY: YOUR_LIVEKIT_SECRET
+  examplekey123: examplesecret123
 
 logging:
   level: info
 ```
 
-Replace `YOUR_LIVEKIT_KEY` and `YOUR_LIVEKIT_SECRET` with the exact values from `.env`.
+Replace `examplekey123` and `examplesecret123` with the exact values from `.env`.
 
 If you expect remote users behind strict NAT or firewalls, plan a proper TURN-capable deployment. LiveKit can work on a LAN without extra TURN setup, but internet voice/video reliability is better when you complete your public networking correctly.
 
@@ -648,8 +651,10 @@ That means:
 2. Replace the `web` service in Compose with something like:
 
    ```yaml
-   image: ghcr.io/your-org/redline:latest
+   image: ghcr.io/YOUR-NAMESPACE/redline:latest
    ```
+
+   Replace `YOUR-NAMESPACE` with the namespace where you publish your REDLINE image.
 
 3. Create separate CA templates for:
    - REDLINE web
