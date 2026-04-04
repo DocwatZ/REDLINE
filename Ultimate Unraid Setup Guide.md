@@ -264,7 +264,7 @@ Edit:
 At minimum, set:
 
 ```env
-SECRET_KEY_BASE=128-character-hex-string-generated-with-openssl
+SECRET_KEY_BASE=PASTE-OUTPUT-OF-openssl-rand-hex-64-HERE
 POSTGRES_DB=redline
 POSTGRES_USER=redline
 POSTGRES_PASSWORD=replace-with-a-strong-password
@@ -286,7 +286,7 @@ openssl rand -hex 16
 
 Use them like this:
 
-- `SECRET_KEY_BASE`: 128 hex characters is fine
+- `SECRET_KEY_BASE`: use 128 hex characters, which is the output of `openssl rand -hex 64`
 - `POSTGRES_PASSWORD`: long random string
 - `REDIS_PASSWORD`: long random string
 - `LIVEKIT_API_KEY`: random value
@@ -651,10 +651,10 @@ That means:
 2. Replace the `web` service in Compose with something like:
 
    ```yaml
-   image: ghcr.io/YOUR-NAMESPACE/redline:latest
+   image: ghcr.io/your-published-namespace/redline:latest
    ```
 
-   Replace `YOUR-NAMESPACE` with the namespace where you publish your REDLINE image.
+   Replace `your-published-namespace` with the namespace where you publish your REDLINE image.
 
 3. Create separate CA templates for:
    - REDLINE web
