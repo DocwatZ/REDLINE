@@ -266,7 +266,7 @@ POSTGRES_DB=redline
 POSTGRES_USER=redline
 POSTGRES_PASSWORD=replace-with-a-strong-password
 REDIS_PASSWORD=replace-with-a-strong-password
-LIVEKIT_URL=ws://UNRAID-IP:7880
+LIVEKIT_URL=ws://YOUR-UNRAID-IP:7880
 LIVEKIT_API_KEY=replace-with-your-livekit-key
 LIVEKIT_API_SECRET=replace-with-your-livekit-secret
 DEVISE_MAILER_FROM=redline@yourdomain.com
@@ -395,7 +395,7 @@ Expected result:
 You can also test from another machine on your LAN:
 
 ```text
-http://UNRAID-IP:3000/health
+http://YOUR-UNRAID-IP:3000/health
 ```
 
 ---
@@ -405,7 +405,7 @@ http://UNRAID-IP:3000/health
 Open REDLINE in a browser:
 
 ```text
-http://UNRAID-IP:3000
+http://YOUR-UNRAID-IP:3000
 ```
 
 Then:
@@ -465,7 +465,7 @@ Your reverse proxy should:
 1. Terminate TLS
 2. Forward `X-Forwarded-Proto=https`
 3. Support WebSockets
-4. Pass REDLINE traffic to `http://UNRAID-IP:3000`
+4. Pass REDLINE traffic to `http://YOUR-UNRAID-IP:3000`
 5. Preserve `/cable` upgrades
 
 For voice/video, choose one of these patterns:
@@ -487,7 +487,7 @@ LIVEKIT_URL=wss://livekit.yourdomain.com
 If all users stay inside your LAN or VPN, set:
 
 ```env
-LIVEKIT_URL=ws://UNRAID-IP:7880
+LIVEKIT_URL=ws://YOUR-UNRAID-IP:7880
 ```
 
 That is the simplest starting point, but it is not the best option for public internet users.
@@ -505,7 +505,7 @@ If you want the shortest all-UI-friendly path, use this order:
 5. **Terminal or file editor**: create the Compose file, `.env`, and `livekit.yaml`
 6. **Compose Manager UI or CLI**: deploy the stack
 7. **Docker page**: confirm the containers are running
-8. **Browser**: open `http://UNRAID-IP:3000`
+8. **Browser**: open `http://YOUR-UNRAID-IP:3000`
 9. **Terminal**: promote your first user to admin
 10. **Reverse proxy UI**: add HTTPS and WebSocket support for public access
 
