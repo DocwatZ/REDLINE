@@ -231,7 +231,8 @@ services:
     image: livekit/livekit-server:latest
     container_name: redline-livekit
     restart: unless-stopped
-    command: --config /etc/livekit.yaml
+    entrypoint: ["sh", "-c"]
+    command: ['exec /livekit-server --config-body "$$(cat /etc/livekit.yaml)"']
     volumes:
       - /mnt/user/appdata/redline/compose/livekit.yaml:/etc/livekit.yaml:ro
     ports:
@@ -909,7 +910,8 @@ That means:
 - Path:
   - `/etc/livekit.yaml` → `/mnt/user/appdata/redline/compose/livekit.yaml`
 - Extra parameters:
-  - `--config /etc/livekit.yaml`
+  - Entrypoint: `["sh", "-c"]`
+  - Command: `exec /livekit-server --config-body "$(cat /etc/livekit.yaml)"`
 
 ### TURN Server (ich777/stun-turn-server)
 
