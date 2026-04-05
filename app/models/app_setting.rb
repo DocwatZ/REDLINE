@@ -20,7 +20,7 @@ class AppSetting < ApplicationRecord
   def request_access_url_scheme
     return if request_access_url.blank?
 
-    scheme = URI.parse(request_access_url).scheme.to_s.downcase
+    scheme = URI.parse(request_access_url).scheme&.downcase || ""
     unless SAFE_URL_SCHEMES.include?(scheme)
       errors.add(:request_access_url, "must use http, https, or mailto scheme")
     end
