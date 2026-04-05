@@ -3,7 +3,8 @@
 class User < ApplicationRecord
   devise :database_authenticatable, :registerable,
          :recoverable, :rememberable, :validatable,
-         :lockable, :trackable
+         :lockable, :trackable,
+         :omniauthable, omniauth_providers: %i[github steam]
 
   has_many :room_memberships, dependent: :destroy
   has_many :rooms, through: :room_memberships
