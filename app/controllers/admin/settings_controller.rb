@@ -11,7 +11,10 @@ class Admin::SettingsController < Admin::BaseController
       AuditService.log(
         action:   "admin.settings_updated",
         user:     current_user,
-        metadata: { self_signup_enabled: @settings.self_signup_enabled },
+        metadata: {
+          self_signup_enabled: @settings.self_signup_enabled,
+          request_access_url:  @settings.request_access_url
+        },
         request:  request
       )
       redirect_to admin_settings_path, notice: "Settings saved."
