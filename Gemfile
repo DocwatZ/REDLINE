@@ -16,6 +16,10 @@ gem "rexml"
 # Redis for ActionCable and caching
 gem "redis", ">= 4.0.1"
 
+# Pin connection_pool to 2.x — version 3.0 changed to keyword-only args,
+# which is incompatible with Rails 7.1's RedisCacheStore
+gem "connection_pool", "~> 2.2"
+
 # Authentication
 gem "devise", "~> 4.9"
 gem "bcrypt", "~> 3.1.7"
