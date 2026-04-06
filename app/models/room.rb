@@ -74,6 +74,8 @@ class Room < ApplicationRecord
   end
 
   def announcement?
+    # Check channel_type first; fall back to room_type for backward
+    # compatibility with rooms created before the channel_type migration.
     channel_type == "announcement" || room_type == "announcement"
   end
 
