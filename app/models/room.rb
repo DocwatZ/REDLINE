@@ -41,6 +41,10 @@ class Room < ApplicationRecord
     e2ee_enabled?
   end
 
+  def to_param
+    slug
+  end
+
   def member?(user)
     members.include?(user)
   end
