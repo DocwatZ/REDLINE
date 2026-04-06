@@ -85,7 +85,9 @@ class Room < ApplicationRecord
 
   # --- Display helpers ---
 
-  # Returns the icon for this channel based on its type
+  # Returns the icon for this channel based on its type.
+  # Checks channel_type first; falls back to room_type for
+  # announcement rooms which predate the channel_type system.
   def channel_icon
     if combined?
       "#/🔊"
