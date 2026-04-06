@@ -60,7 +60,7 @@
             <% if private_rooms.any? %>
               <section aria-labelledby="nav-private-heading">
                 <div style="display:flex;align-items:center;justify-content:space-between;padding:.25rem .75rem">
-                  <h2 id="nav-private-heading" class="nav-section-heading" style="margin:0">Private 🗝️🔐</h2>
+                  <h2 id="nav-private-heading" class="nav-section-heading" style="margin:0">Private <span aria-hidden="true">🗝️🔐</span></h2>
                 </div>
                 <ul role="list" style="margin:.25rem 0 0;padding:0 .5rem;list-style:none">
                   <% private_rooms.each do |room| %>
@@ -81,7 +81,7 @@
             <%# Channels (voice) with subchannels %>
             <section aria-labelledby="nav-channels-heading" style="<%= 'margin-top:1rem' if private_rooms.any? %>">
               <div style="display:flex;align-items:center;justify-content:space-between;padding:.25rem .75rem">
-                <h2 id="nav-channels-heading" class="nav-section-heading" style="margin:0">Channels 🔊</h2>
+                <h2 id="nav-channels-heading" class="nav-section-heading" style="margin:0">Channels <span aria-hidden="true">🔊</span></h2>
                 <%= link_to new_room_path,
                       style: "color:var(--rl-text-muted);display:flex;border-radius:4px",
                       aria: { label: "Create new channel" } do %>
@@ -123,7 +123,7 @@
             <%# Chats (text) %>
             <section aria-labelledby="nav-chats-heading" style="margin-top:1rem">
               <div style="display:flex;align-items:center;justify-content:space-between;padding:.25rem .75rem">
-                <h2 id="nav-chats-heading" class="nav-section-heading" style="margin:0">Chats #</h2>
+                <h2 id="nav-chats-heading" class="nav-section-heading" style="margin:0">Chats <span aria-hidden="true">#</span></h2>
               </div>
               <ul role="list" style="margin:.25rem 0 0;padding:0 .5rem;list-style:none">
                 <% chat_rooms.each do |room| %>
