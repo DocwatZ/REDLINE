@@ -8,9 +8,18 @@ class MessagesController < ApplicationController
   def create
     @message = @room.messages.build(message_params)
     @message.user = current_user
+    @message.message_context = params.dig(:message, :message_context) || "standard"
+
+    # Check permissions based on message context
+    membership = @room.membership_for(current_user)
+    unless membership&.can_send_messages?(@room)
+      render json: { error: "You do not have permission to send messages" }, status: :forbidden
+      return
+    end
 
     if @message.save
-      ActionCable.server.broadcast("chat_#{@room.id}", render_message(@message))
+      broadcast_channel = @message.in_call? ? "voice_chat_#{@room.id}" : "chat_#{@room.id}"
+      ActionCable.server.broadcast(broadcast_channel, render_message(@message))
       render json: render_message(@message), status: :created
     else
       render json: { errors: @message.errors.full_messages }, status: :unprocessable_entity
@@ -19,7 +28,8 @@ class MessagesController < ApplicationController
 
   def update
     if @message.user == current_user && @message.update(message_params.merge(edited: true))
-      ActionCable.server.broadcast("chat_#{@room.id}", render_message(@message))
+      broadcast_channel = @message.in_call? ? "voice_chat_#{@room.id}" : "chat_#{@room.id}"
+      ActionCable.server.broadcast(broadcast_channel, render_message(@message))
       head :ok
     else
       head :forbidden
@@ -32,7 +42,8 @@ class MessagesController < ApplicationController
 
     if can_delete
       @message.update!(deleted: true, body: "")
-      ActionCable.server.broadcast("chat_#{@room.id}", render_message(@message))
+      broadcast_channel = @message.in_call? ? "voice_chat_#{@room.id}" : "chat_#{@room.id}"
+      ActionCable.server.broadcast(broadcast_channel, render_message(@message))
       head :ok
     else
       head :forbidden
@@ -70,7 +81,8 @@ class MessagesController < ApplicationController
       avatar_color: message.user.avatar_color,
       created_at: message.created_at.iso8601,
       edited: message.edited,
-      deleted: message.deleted
+      deleted: message.deleted,
+      message_context: message.message_context
     }
   end
 end
