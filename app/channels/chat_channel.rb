@@ -6,17 +6,26 @@ class ChatChannel < ApplicationCable::Channel
     return reject unless @room && current_user.rooms.include?(@room)
 
     stream_from "chat_#{@room.id}"
+
+    # Also subscribe to voice chat stream if this is a voice channel
+    if @room.voice_channel?
+      stream_from "voice_chat_#{@room.id}"
+    end
   end
 
   def receive(data)
     return unless @room
 
+    message_context = data["message_context"] || "standard"
+
     message = @room.messages.create!(
       user: current_user,
-      body: data["body"].to_s.strip.first(4000)
+      body: data["body"].to_s.strip.first(4000),
+      message_context: message_context
     )
 
-    ActionCable.server.broadcast("chat_#{@room.id}", render_message(message))
+    broadcast_channel = message.in_call? ? "voice_chat_#{@room.id}" : "chat_#{@room.id}"
+    ActionCable.server.broadcast(broadcast_channel, render_message(message))
   end
 
   def unsubscribed
@@ -35,7 +44,8 @@ class ChatChannel < ApplicationCable::Channel
       initials: message.user.initials,
       avatar_color: message.user.avatar_color,
       created_at: message.created_at.iso8601,
-      edited: message.edited
+      edited: message.edited,
+      message_context: message.message_context
     }
   end
 end

@@ -6,32 +6,36 @@ class RoomsController < ApplicationController
   before_action :require_admin!, only: [ :update, :destroy ]
 
   def index
-    @rooms = Room.public_rooms.by_name.includes(:owner, :room_memberships)
-    @my_rooms = current_user.rooms.by_name.includes(:owner)
+    @rooms = Room.public_rooms.top_level.by_position.includes(:owner, :room_memberships, :subchannels)
+    @my_rooms = current_user.rooms.top_level.by_position.includes(:owner, :subchannels)
   end
 
   def show
-    @messages = @room.messages.visible.recent.includes(:user).last(50)
+    @messages = @room.messages.visible.standard_messages.recent.includes(:user).last(50)
+    @in_call_messages = @room.voice_channel? ? @room.messages.visible.in_call_messages.recent.includes(:user).last(20) : []
     @members = @room.members.order(:display_name)
+    @subchannels = @room.subchannels.by_position if @room.voice_channel?
   end
 
   def new
     @room = Room.new
+    @voice_channels = current_user.rooms.voice_channels.top_level.by_position
   end
 
   def create
     @room = current_user.owned_rooms.build(room_params)
 
     if @room.save
-      redirect_to @room, notice: "Room created successfully."
+      redirect_to @room, notice: "#{@room.subchannel? ? 'Subchannel' : 'Channel'} created successfully."
     else
+      @voice_channels = current_user.rooms.voice_channels.top_level.by_position
       render :new, status: :unprocessable_entity
     end
   end
 
   def update
     if @room.update(room_params)
-      redirect_to @room, notice: "Room updated."
+      redirect_to @room, notice: "Channel updated."
     else
       render :edit, status: :unprocessable_entity
     end
@@ -39,12 +43,12 @@ class RoomsController < ApplicationController
 
   def destroy
     @room.destroy
-    redirect_to rooms_path, notice: "Room deleted."
+    redirect_to rooms_path, notice: "Channel deleted."
   end
 
   def join
     if @room.private?
-      redirect_to rooms_path, alert: "This room is private."
+      redirect_to rooms_path, alert: "This channel is private."
       return
     end
 
@@ -73,7 +77,7 @@ class RoomsController < ApplicationController
   end
 
   def room_params
-    params.require(:room).permit(:name, :description, :room_type, :private, :e2ee_enabled)
+    params.require(:room).permit(:name, :description, :room_type, :channel_type, :private, :e2ee_enabled, :parent_id, :position)
   end
 
   def require_membership!
