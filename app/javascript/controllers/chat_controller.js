@@ -71,7 +71,7 @@ export default class extends Controller {
           <time datetime="${isoTime}" class="text-xs text-muted">${displayTime}</time>
           ${data.edited ? '<span class="text-xs text-muted" aria-label="edited">(edited)</span>' : ""}
         </div>
-        <div class="message-body${data.deleted ? " deleted" : ""}">
+        <div class="message-body${data.deleted ? " deleted" : ""}" data-controller="link-preview">
           ${this.escapeHtml(data.body)}
         </div>
       </div>
