@@ -145,8 +145,9 @@ export default class extends Controller {
 
     // Image
     if (data.image_url) {
+      const imgAlt = data.title ? `Preview image for ${data.title}` : ""
       html += `<div class="link-preview-image">
-        <img src="${this.escapeAttr(data.image_url)}" alt="" loading="lazy"
+        <img src="${this.escapeAttr(data.image_url)}" alt="${this.escapeAttr(imgAlt)}" loading="lazy"
              onerror="this.parentElement.remove()">
       </div>`
     }

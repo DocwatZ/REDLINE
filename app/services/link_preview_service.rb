@@ -173,25 +173,25 @@ class LinkPreviewService
     end
 
     def extract_meta(html, property)
-      match = html.match(/<meta[^>]*(?:property|name)\s*=\s*["']#{Regexp.escape(property)}["'][^>]*content\s*=\s*["']([^"']*)["'][^>]*>/i) ||
-              html.match(/<meta[^>]*content\s*=\s*["']([^"']*)["'][^>]*(?:property|name)\s*=\s*["']#{Regexp.escape(property)}["'][^>]*>/i)
+      match = html.match(/<meta[^>]*+(?:property|name)\s*=\s*["']#{Regexp.escape(property)}["'][^>]*+content\s*=\s*["']([^"']*+)["'][^>]*+>/i) ||
+              html.match(/<meta[^>]*+content\s*=\s*["']([^"']*+)["'][^>]*+(?:property|name)\s*=\s*["']#{Regexp.escape(property)}["'][^>]*+>/i)
       match ? CGI.unescapeHTML(match[1].to_s.strip) : nil
     end
 
     def extract_meta_name(html, name)
-      match = html.match(/<meta[^>]*name\s*=\s*["']#{Regexp.escape(name)}["'][^>]*content\s*=\s*["']([^"']*)["'][^>]*>/i) ||
-              html.match(/<meta[^>]*content\s*=\s*["']([^"']*)["'][^>]*name\s*=\s*["']#{Regexp.escape(name)}["'][^>]*>/i)
+      match = html.match(/<meta[^>]*+name\s*=\s*["']#{Regexp.escape(name)}["'][^>]*+content\s*=\s*["']([^"']*+)["'][^>]*+>/i) ||
+              html.match(/<meta[^>]*+content\s*=\s*["']([^"']*+)["'][^>]*+name\s*=\s*["']#{Regexp.escape(name)}["'][^>]*+>/i)
       match ? CGI.unescapeHTML(match[1].to_s.strip) : nil
     end
 
     def extract_title_tag(html)
-      match = html.match(/<title[^>]*>([^<]*)<\/title>/i)
+      match = html.match(/<title[^>]*+>([^<]*+)<\/title>/i)
       match ? CGI.unescapeHTML(match[1].to_s.strip) : nil
     end
 
     def extract_favicon(html, uri)
-      match = html.match(/<link[^>]*rel\s*=\s*["'](?:shortcut\s+)?icon["'][^>]*href\s*=\s*["']([^"']*)["'][^>]*>/i) ||
-              html.match(/<link[^>]*href\s*=\s*["']([^"']*)["'][^>]*rel\s*=\s*["'](?:shortcut\s+)?icon["'][^>]*>/i)
+      match = html.match(/<link[^>]*+rel\s*=\s*["'](?:shortcut\s+)?icon["'][^>]*+href\s*=\s*["']([^"']*+)["'][^>]*+>/i) ||
+              html.match(/<link[^>]*+href\s*=\s*["']([^"']*+)["'][^>]*+rel\s*=\s*["'](?:shortcut\s+)?icon["'][^>]*+>/i)
 
       if match
         resolve_url(match[1].to_s.strip, uri)
