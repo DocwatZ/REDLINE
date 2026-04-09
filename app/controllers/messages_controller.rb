@@ -79,10 +79,19 @@ class MessagesController < ApplicationController
   end
 
   def message_params
-    params.require(:message).permit(:body)
+    params.require(:message).permit(:body, :parent_id)
   end
 
   def render_message(message)
+    parent_data = nil
+    if message.parent_id && !message.parent&.deleted?
+      parent_data = {
+        id: message.parent.id,
+        display_name: message.parent.user.display_name,
+        body: message.parent.display_body.truncate(100)
+      }
+    end
+
     {
       id: message.id,
       body: message.display_body,
@@ -94,7 +103,8 @@ class MessagesController < ApplicationController
       created_at: message.created_at.iso8601,
       edited: message.edited,
       deleted: message.deleted,
-      message_context: message.message_context
+      message_context: message.message_context,
+      parent: parent_data
     }
   end
 end
