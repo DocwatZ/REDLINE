@@ -743,19 +743,37 @@ input[type="radio"]:focus-visible {
 }
 
 .channel-header {
-  height: 3.5rem;
+  height: 3.5rem; /* 56px */
   flex-shrink: 0;
   display: flex;
   align-items: center;
-  gap: .75rem;
-  padding: 0 .75rem;
+  justify-content: space-between;
+  padding: 0 .75rem; /* 12px */
   border-bottom: 1px solid var(--rl-border);
   background: var(--rl-surface);
   z-index: 10;
 }
+.channel-header-left {
+  display: flex;
+  align-items: center;
+  gap: .5rem;
+  flex: 1;
+  min-width: 0;
+}
+.channel-header-right {
+  display: flex;
+  align-items: center;
+  gap: .25rem;
+  flex-shrink: 0;
+}
 .channel-header-info {
   flex: 1;
   min-width: 0;
+}
+.channel-header-title-row {
+  display: flex;
+  align-items: center;
+  gap: .5rem;
 }
 .channel-header-title {
   font-size: 1rem;
@@ -764,6 +782,37 @@ input[type="radio"]:focus-visible {
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
+}
+
+/* Status dot — connection indicator */
+.channel-status-dot {
+  width: .5rem;
+  height: .5rem;
+  border-radius: var(--rl-radius-full);
+  flex-shrink: 0;
+}
+.channel-status-connected {
+  background-color: var(--rl-success);
+}
+.channel-status-connecting {
+  background-color: var(--rl-warning);
+  animation: pulse-dot 1.2s ease-in-out infinite;
+}
+.channel-status-disconnected {
+  background-color: var(--rl-text-muted);
+}
+@keyframes pulse-dot {
+  0%, 100% { opacity: 1; }
+  50% { opacity: .4; }
+}
+
+/* Settings button */
+.channel-settings-btn {
+  color: var(--rl-text-muted);
+  transition: color var(--rl-base-t);
+}
+.channel-settings-btn:hover {
+  color: var(--rl-text-primary);
 }
 .channel-join-btn {
   display: flex;
@@ -1117,14 +1166,33 @@ input[type="radio"]:focus-visible {
     display: flex;
   }
 
-  /* Members panel: hidden on mobile */
+  /* Members panel: slide-up sheet on mobile */
   .channel-layout .channel-members-panel,
   .channel-layout #members-panel {
-    display: none;
+    position: fixed;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    top: auto;
+    width: 100%;
+    max-height: calc(70vh - env(safe-area-inset-bottom));
+    z-index: 30;
+    border-radius: var(--rl-radius-xl) var(--rl-radius-xl) 0 0;
+    box-shadow: 0 -4px 24px rgba(0,0,0,.4);
+    transform: translateY(100%);
+    transition: transform 200ms ease;
+    background: var(--rl-surface);
+    border-left: none;
+  }
+  .channel-layout .channel-members-panel.channel-members-panel-visible,
+  .channel-layout #members-panel.channel-members-panel-visible {
+    display: flex;
+    flex-direction: column;
+    transform: translateY(0);
   }
 
-  /* Members toggle: hidden on mobile (use channel header actions) */
-  .channel-members-toggle {
+  /* Members count label: hidden on mobile (icon only) */
+  .channel-members-count {
     display: none;
   }
 
@@ -1135,7 +1203,7 @@ input[type="radio"]:focus-visible {
     right: 0;
     bottom: 0;
     top: auto;
-    max-height: 70vh;
+    max-height: calc(70vh - env(safe-area-inset-bottom));
     z-index: 30;
     border-radius: var(--rl-radius-xl) var(--rl-radius-xl) 0 0;
     box-shadow: 0 -4px 24px rgba(0,0,0,.4);
@@ -1153,8 +1221,9 @@ input[type="radio"]:focus-visible {
     display: flex;
   }
 
-  /* Control bar: full-width at bottom, thumb-friendly */
+  /* Control bar: full-width at bottom, thumb-friendly, 72px */
   .channel-control-bar {
+    height: 4.5rem; /* 72px */
     gap: .25rem;
     padding: .5rem;
     padding-bottom: max(.5rem, env(safe-area-inset-bottom));
@@ -1170,10 +1239,12 @@ input[type="radio"]:focus-visible {
     height: 1.5rem;
   }
 
-  /* Channel header: compact */
+  /* Channel header: compact, 12px padding */
   .channel-header {
-    padding: 0 .5rem;
-    gap: .5rem;
+    padding: 0 .75rem; /* 12px */
+  }
+  .channel-header-left {
+    gap: .375rem;
   }
   .channel-join-btn-text {
     display: none;

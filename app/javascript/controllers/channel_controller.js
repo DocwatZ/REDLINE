@@ -33,6 +33,7 @@ export default class extends Controller {
 
     this.membersVisible = !this.isMobile()
     this.updateMembersPanel()
+    this.updateStatusDot("connected")
 
     // Listen for resize to handle responsive transitions
     this._onResize = this.handleResize.bind(this)
@@ -55,6 +56,7 @@ export default class extends Controller {
     if (this.isMobile() && this.membersVisible) {
       this.membersVisible = false
       this.updateMembersPanel()
+      this.removeMembersBackdrop()
     }
   }
 
@@ -64,6 +66,15 @@ export default class extends Controller {
 
     const btn = this.element.querySelector(".channel-members-toggle")
     if (btn) btn.setAttribute("aria-expanded", String(this.membersVisible))
+
+    // On mobile, manage backdrop for members overlay
+    if (this.isMobile()) {
+      if (this.membersVisible) {
+        this.addMembersBackdrop()
+      } else {
+        this.removeMembersBackdrop()
+      }
+    }
   }
 
   updateMembersPanel() {
@@ -79,6 +90,52 @@ export default class extends Controller {
     }
   }
 
+  updateStatusDot(state) {
+    const dot = document.getElementById("channel-status-dot")
+    if (!dot) return
+
+    dot.classList.remove("channel-status-connected", "channel-status-connecting", "channel-status-disconnected")
+
+    switch (state) {
+      case "connected":
+        dot.classList.add("channel-status-connected")
+        dot.setAttribute("aria-label", "Connected")
+        break
+      case "connecting":
+        dot.classList.add("channel-status-connecting")
+        dot.setAttribute("aria-label", "Connecting")
+        break
+      case "disconnected":
+        dot.classList.add("channel-status-disconnected")
+        dot.setAttribute("aria-label", "Disconnected")
+        break
+    }
+  }
+
+  addMembersBackdrop() {
+    if (document.getElementById("members-backdrop")) return
+
+    const backdrop = document.createElement("div")
+    backdrop.id = "members-backdrop"
+    backdrop.className = "bottom-sheet-backdrop"
+    backdrop.addEventListener("click", () => {
+      this.toggleMembers()
+    })
+    document.body.appendChild(backdrop)
+
+    requestAnimationFrame(() => {
+      backdrop.classList.add("bottom-sheet-backdrop-visible")
+    })
+  }
+
+  removeMembersBackdrop() {
+    const backdrop = document.getElementById("members-backdrop")
+    if (!backdrop) return
+
+    backdrop.classList.remove("bottom-sheet-backdrop-visible")
+    setTimeout(() => backdrop.remove(), 200)
+  }
+
   // ─── Voice/Video Lifecycle ───────────────────────────────────
 
   async joinCall() {
@@ -91,6 +148,7 @@ export default class extends Controller {
     // Show loading state
     if (callPanel) callPanel.classList.remove("hidden")
     if (loading) loading.classList.remove("hidden")
+    this.updateStatusDot("connecting")
 
     try {
       const data = await this.fetchToken()
@@ -98,6 +156,7 @@ export default class extends Controller {
       await this.connectToRoom(data.token, data.url)
 
       this.inCall = true
+      this.updateStatusDot("connected")
 
       // Hide loading
       if (loading) loading.classList.add("hidden")
@@ -123,6 +182,7 @@ export default class extends Controller {
     } catch (err) {
       console.error("Channel join error:", err)
       if (loading) loading.classList.add("hidden")
+      this.updateStatusDot("disconnected")
       this.announce("Failed to join channel: " + err.message)
     }
   }
@@ -300,6 +360,7 @@ export default class extends Controller {
     this.localMicMuted = false
     this.localDeafened = false
     this.screenSharing = false
+    this.updateStatusDot("connected")
 
     document.getElementById("call-panel")?.classList.add("hidden")
     document.getElementById("channel-control-bar")?.classList.add("hidden")
