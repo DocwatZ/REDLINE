@@ -8,7 +8,7 @@ class DirectMessagesController < ApplicationController
     @messages = DirectMessage.conversation(current_user.id, @partner.id).last(50)
     @unread = DirectMessage.where(sender: @partner, recipient: current_user, read: false)
     @unread.update_all(read: true)
-    # Clear the sidebar unread count for this partner after marking read
+    # Exclude this partner's count from the sidebar badge for this page render
     @unread_dm_counts = @unread_dm_counts.except(@partner.id)
   end
 
@@ -58,7 +58,7 @@ class DirectMessagesController < ApplicationController
       head :forbidden and return
     end
 
-    @dm.update!(deleted: true, body: "")
+    @dm.update_columns(deleted: true, body: "", updated_at: Time.current)
     conversation_key = [ @dm.sender_id, @dm.recipient_id ].sort.join("_")
     ActionCable.server.broadcast("dm_#{conversation_key}", render_dm(@dm))
     head :ok

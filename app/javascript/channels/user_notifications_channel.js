@@ -14,7 +14,12 @@ consumer.subscriptions.create("UserNotificationsChannel", {
     if (!link) return
 
     // Do not badge if the user is currently viewing this conversation
-    const onDmPage = window.location.pathname.includes(`/users/${senderId}/direct_messages`)
+    // Use exact segment matching to avoid false matches (e.g. /users/1/ vs /users/10/)
+    const pathParts = window.location.pathname.split("/")
+    const userIdx = pathParts.indexOf("users")
+    const currentPartnerId = userIdx >= 0 ? pathParts[userIdx + 1] : null
+    const onDmPage = currentPartnerId === String(senderId) &&
+                     pathParts.includes("direct_messages")
     if (onDmPage) return
 
     let badge = link.querySelector(".dm-unread-badge")

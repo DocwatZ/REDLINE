@@ -50,7 +50,7 @@ class MessagesController < ApplicationController
     can_delete = @message.user == current_user || membership&.moderator?
 
     if can_delete
-      @message.update!(deleted: true, body: "")
+      @message.update_columns(deleted: true, body: "", updated_at: Time.current)
       broadcast_channel = @message.in_call? ? "voice_chat_#{@room.id}" : "chat_#{@room.id}"
       ActionCable.server.broadcast(broadcast_channel, render_message(@message))
       head :ok
