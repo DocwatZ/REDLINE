@@ -49,10 +49,11 @@ class LivekitController < ApplicationController
     api_key    = ENV.fetch("LIVEKIT_API_KEY", "devkey")
     api_secret = ENV.fetch("LIVEKIT_API_SECRET", "devsecret")
 
-    can_publish = true
+    can_publish = membership&.can_speak?(room) != false
     can_subscribe = true
     can_publish_data = true  # Required for in-call DataChannel chat
     can_screen_share = membership&.can_screen_share?(room) || false
+    can_publish_video = membership&.can_video?(room) != false
 
     grants = {
       roomJoin: true,
