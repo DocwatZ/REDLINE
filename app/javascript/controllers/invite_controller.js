@@ -24,6 +24,10 @@ export default class extends Controller {
     this.modalTarget.classList.add("hidden")
   }
 
+  stopPropagation(event) {
+    event.stopPropagation()
+  }
+
   async fetchOrCreateInvite() {
     const csrf = document.querySelector('meta[name="csrf-token"]')?.content
     try {
