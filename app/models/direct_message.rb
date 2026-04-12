@@ -8,6 +8,7 @@ class DirectMessage < ApplicationRecord
   has_many :direct_message_reactions, dependent: :destroy
 
   validates :body, length: { maximum: 4000 }
+  validate :body_or_files_present
 
   before_validation :sanitize_body
 
@@ -30,5 +31,10 @@ class DirectMessage < ApplicationRecord
 
   def sanitize_body
     self.body = body.to_s.strip
+  end
+
+  def body_or_files_present
+    return if body.present? || files.attached?
+    errors.add(:base, "must include a message or attachment")
   end
 end

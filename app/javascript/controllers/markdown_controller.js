@@ -5,9 +5,9 @@ function formatMessage(rawText) {
   div.appendChild(document.createTextNode(rawText))
   let escaped = div.innerHTML
 
-  // Fenced code blocks (protect content first)
+  // Fenced code blocks — content is already HTML-escaped from the initial escaping step above
   escaped = escaped.replace(/```[\s\S]*?```/g, (match) => {
-    const code = match.slice(3, -3).trim()
+    const code = match.slice(3, -3).trim()  // already HTML-escaped, safe to insert directly
     return `<pre class="msg-code-block"><code>${code}</code></pre>`
   })
 
