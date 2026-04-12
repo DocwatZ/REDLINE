@@ -6,7 +6,8 @@
          data-message-actions-message-id-value="<%= message.id %>"
          data-message-actions-is-own-value="<%= is_own %>"
          data-message-actions-body-value="<%= message.deleted? ? '' : message.body %>"
-         data-message-actions-type-value="channel">
+         data-message-actions-type-value="channel"
+         <% if message.ciphertext.present? %>data-ciphertext="<%= message.ciphertext %>"<% end %>>
   <%# Avatar %>
   <div class="flex-shrink-0 mt-0.5" aria-hidden="true">
     <div class="w-8 h-8 rounded-full flex items-center justify-center text-white text-xs font-bold overflow-hidden"

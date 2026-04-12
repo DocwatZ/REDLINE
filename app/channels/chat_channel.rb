@@ -24,12 +24,20 @@ class ChatChannel < ApplicationCable::Channel
 
     message_context = data["message_context"] || "standard"
 
-    message = @room.messages.create!(
+    message_attrs = {
       user: current_user,
-      body: data["body"].to_s.strip.first(4000),
       parent_id: data["parent_id"].presence,
       message_context: message_context
-    )
+    }
+
+    # E2EE rooms receive ciphertext instead of body
+    if data["ciphertext"].present?
+      message_attrs[:ciphertext] = data["ciphertext"].to_s.first(8000)
+    else
+      message_attrs[:body] = data["body"].to_s.strip.first(4000)
+    end
+
+    message = @room.messages.create!(message_attrs)
 
     broadcast_channel = message.in_call? ? "voice_chat_#{@room.id}" : "chat_#{@room.id}"
     ActionCable.server.broadcast(broadcast_channel, render_message(message))
@@ -55,6 +63,7 @@ class ChatChannel < ApplicationCable::Channel
     {
       id: message.id,
       body: message.display_body,
+      ciphertext: message.ciphertext,
       room_id: message.room_id,
       user_id: message.user_id,
       display_name: message.user.display_name,

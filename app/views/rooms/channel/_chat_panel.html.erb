@@ -10,10 +10,29 @@
      aria-live="polite"
      aria-label="Chat messages"
      aria-relevant="additions"
-     data-controller="chat"
+     data-controller="chat<%= ' e2ee' if room.e2ee? %>"
      data-chat-room-id-value="<%= room.id %>"
      data-chat-room-slug-value="<%= room.slug %>"
-     data-chat-current-user-id-value="<%= current_user.id %>">
+     data-chat-current-user-id-value="<%= current_user.id %>"
+     <% if room.e2ee? %>
+     data-e2ee-room-id-value="<%= room.id %>"
+     data-e2ee-e2ee-enabled-value="true"
+     <% end %>>
+
+  <% if room.e2ee? %>
+    <div id="e2ee-status-banner" class="channel-announcement" role="status" aria-live="polite"
+         style="border-left:3px solid var(--rl-accent);margin-bottom:0.5rem">
+      <div class="flex items-center gap-2">
+        <span class="text-lg" aria-hidden="true">🔐</span>
+        <div>
+          <h2 class="font-semibold text-primary text-sm" style="margin:0">End-to-End Encrypted</h2>
+          <p class="text-xs text-muted" style="margin:0.25rem 0 0">
+            Messages in this channel are encrypted. Your key is being loaded&hellip;
+          </p>
+        </div>
+      </div>
+    </div>
+  <% end %>
 
   <% if room.announcement? && room.description.present? %>
     <div class="channel-announcement" role="region" aria-label="Announcement">

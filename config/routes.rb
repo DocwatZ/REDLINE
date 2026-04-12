@@ -38,6 +38,7 @@ Rails.application.routes.draw do
   namespace :api do
     get  "keys/:user_id", to: "keys#show", as: :user_key
     put  "keys",          to: "keys#update", as: :keys
+    get  "room_keys/:room_id", to: "room_keys#show", as: :room_key
   end
 
   # Registration closed landing page (shown when self-signup is disabled)

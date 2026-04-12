@@ -88,7 +88,7 @@ class MessagesController < ApplicationController
   end
 
   def message_params
-    params.require(:message).permit(:body, :parent_id, files: [])
+    params.require(:message).permit(:body, :ciphertext, :parent_id, files: [])
   end
 
   def render_message(message)
@@ -104,6 +104,7 @@ class MessagesController < ApplicationController
     {
       id: message.id,
       body: message.display_body,
+      ciphertext: message.ciphertext,
       room_id: message.room_id,
       user_id: message.user_id,
       display_name: message.user.display_name,

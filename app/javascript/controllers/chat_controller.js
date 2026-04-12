@@ -25,6 +25,9 @@ export default class extends Controller {
     this._threadMessageId = null
     this._handleOpenThread = (e) => this.openThread(e.detail.messageId)
     document.addEventListener("message:open-thread", this._handleOpenThread)
+
+    // Decrypt any server-rendered E2EE messages on initial page load
+    this._decryptExistingMessages()
   }
 
   disconnect() {
@@ -46,6 +49,22 @@ export default class extends Controller {
       }
     }
 
+    // Decrypt E2EE messages before rendering
+    if (data.ciphertext) {
+      this._decryptAndRender(data)
+      return
+    }
+
+    this._renderMessage(data)
+  }
+
+  async _decryptAndRender(data) {
+    const decryptedBody = await this._tryDecrypt(data.ciphertext)
+    data.body = decryptedBody
+    this._renderMessage(data)
+  }
+
+  _renderMessage(data) {
     const wasAtBottom = this.isAtBottom()
     const existing = document.getElementById(`message-${data.id}`)
 
@@ -336,5 +355,58 @@ export default class extends Controller {
         this.openThread(this._threadMessageId)
       })
       .catch(err => console.error("Thread reply error:", err))
+  }
+
+  // ── E2EE helpers ──────────────────────────────────────────────────────────
+
+  _getE2eeController() {
+    const app = this.application
+    return app.getControllerForElementAndIdentifier(this.element, "e2ee")
+  }
+
+  async _tryDecrypt(ciphertext) {
+    try {
+      const e2ee = this._getE2eeController()
+      if (e2ee && e2ee.isReady()) {
+        return await e2ee.decrypt(ciphertext)
+      }
+      return "\u{1F512} [encrypted message \u2014 key not available]"
+    } catch (err) {
+      console.warn("[E2EE] Decryption failed:", err)
+      return "\u{1F512} [encrypted message \u2014 decryption failed]"
+    }
+  }
+
+  async _decryptExistingMessages() {
+    // Find all server-rendered messages that have ciphertext
+    const encryptedMessages = this.element.querySelectorAll("[data-ciphertext]")
+    if (encryptedMessages.length === 0) return
+
+    // Wait briefly for the e2ee controller to initialize
+    await new Promise(resolve => setTimeout(resolve, 500))
+
+    const e2ee = this._getE2eeController()
+    if (!e2ee) return
+
+    // Wait for the room key to load (poll for up to 5 seconds)
+    let attempts = 0
+    while (!e2ee.isReady() && attempts < 10) {
+      await new Promise(resolve => setTimeout(resolve, 500))
+      attempts++
+    }
+
+    for (const msgEl of encryptedMessages) {
+      const ciphertext = msgEl.getAttribute("data-ciphertext")
+      if (!ciphertext) continue
+
+      const bodyDiv = msgEl.querySelector(".message-body")
+      if (!bodyDiv) continue
+
+      const decrypted = await this._tryDecrypt(ciphertext)
+      bodyDiv.textContent = decrypted
+
+      // Update message-actions body value for edit/reply
+      msgEl.setAttribute("data-message-actions-body-value", decrypted)
+    }
   }
 }
