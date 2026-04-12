@@ -12,6 +12,11 @@ class PresenceChannel < ApplicationCable::Channel
     broadcast_presence
   end
 
+  def online
+    current_user.update_column(:status, "online")
+    broadcast_presence
+  end
+
   def unsubscribed
     current_user.update_column(:status, "offline")
     broadcast_presence

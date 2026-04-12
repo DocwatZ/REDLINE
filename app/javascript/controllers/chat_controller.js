@@ -34,6 +34,18 @@ export default class extends Controller {
 
   appendMessage(data) {
     if (data.type === "reaction_update") { this.updateReactions(data); return }
+
+    // If the thread panel is open and this message is a reply to the thread's parent, append it
+    if (this._threadMessageId && data.parent_id === this._threadMessageId) {
+      const threadContainer = document.getElementById("thread-messages")
+      if (threadContainer && !threadContainer.querySelector(`[data-thread-msg-id="${data.id}"]`)) {
+        const el = this.buildThreadMessage(data)
+        el.setAttribute("data-thread-msg-id", data.id)
+        threadContainer.appendChild(el)
+        threadContainer.scrollTop = threadContainer.scrollHeight
+      }
+    }
+
     const wasAtBottom = this.isAtBottom()
     const existing = document.getElementById(`message-${data.id}`)
 
@@ -266,6 +278,7 @@ export default class extends Controller {
     const all = [data.parent, ...data.replies]
     all.forEach(msg => {
       const el = this.buildThreadMessage(msg)
+      el.setAttribute("data-thread-msg-id", msg.id)
       container.appendChild(el)
     })
     container.scrollTop = container.scrollHeight

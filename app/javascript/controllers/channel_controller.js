@@ -469,6 +469,19 @@ export default class extends Controller {
     const data = encoder.encode(JSON.stringify(message))
     this.livekitRoom.localParticipant.publishData(data, { reliable: true })
 
+    // Persist to DB so late joiners can see the message
+    const csrf = document.querySelector('meta[name="csrf-token"]')?.content
+    const roomSlug = this.roomSlugValue
+    fetch(`/rooms/${roomSlug}/messages`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "Accept": "application/json",
+        "X-CSRF-Token": csrf ?? ""
+      },
+      body: JSON.stringify({ message: { body, message_context: "in_call" } })
+    }).catch(err => console.warn("Failed to persist in-call message:", err))
+
     this.appendInCallMessage(message, null)
     input.value = ""
   }

@@ -3,10 +3,12 @@ import consumer from "channels/consumer"
 // Presence channel — keeps user status in sync
 const presenceSubscription = consumer.subscriptions.create("PresenceChannel", {
   connected() {
-    // Report visibility changes for away status
+    // Report visibility changes for away/online status
     document.addEventListener("visibilitychange", () => {
       if (document.hidden) {
         this.perform("away")
+      } else {
+        this.perform("online")
       }
     })
   },

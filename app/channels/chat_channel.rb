@@ -16,6 +16,12 @@ class ChatChannel < ApplicationCable::Channel
   def receive(data)
     return unless @room
 
+    # Prevent non-admins from posting to announcement channels via WebSocket
+    if @room.announcement?
+      membership = @room.membership_for(current_user)
+      return unless membership&.admin?
+    end
+
     message_context = data["message_context"] || "standard"
 
     message = @room.messages.create!(
