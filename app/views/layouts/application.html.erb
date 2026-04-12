@@ -72,7 +72,8 @@
   </head>
 
   <body data-link-previews="<%= link_previews_body_attr %>"
-        data-dm-sounds="<%= current_user&.notification_preference&.dm_sounds != false ? 'true' : 'false' %>">
+        data-dm-sounds="<%= current_user&.notification_preference&.dm_sounds != false ? 'true' : 'false' %>"
+        data-mention-alerts="<%= current_user&.notification_preference&.mention_alerts != false ? 'true' : 'false' %>">
     <%# Skip navigation link — first focusable element, visible on focus %>
     <a href="#main-content" aria-label="Skip to main content">Skip to main content</a>
 

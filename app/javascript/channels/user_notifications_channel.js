@@ -81,7 +81,9 @@ consumer.subscriptions.create("UserNotificationsChannel", {
         badge.remove()
       }
     } else if (data.type === "mention") {
-      showToast(`Mentioned in #${data.room_name}`, `${data.sender_name}: ${data.body_preview}`)
+      if (document.body.dataset.mentionAlerts !== "false") {
+        showToast(`Mentioned in #${data.room_name}`, `${data.sender_name}: ${data.body_preview}`)
+      }
     } else if (data.type === "dm_read") {
       const dmEl = document.getElementById(`dm-${data.message_id}`)
       if (!dmEl) return
