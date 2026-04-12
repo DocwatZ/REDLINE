@@ -78,8 +78,12 @@ Rails.application.routes.draw do
     resources :invites, only: [:index, :create]
   end
 
-  # Individual direct-message actions (edit / delete)
-  resources :direct_messages, only: [ :update, :destroy ]
+  # Individual direct-message actions (edit / delete / react)
+  resources :direct_messages, only: [ :update, :destroy ] do
+    member do
+      post :reactions, to: "direct_message_reactions#toggle"
+    end
+  end
 
   # Direct Messages
   resources :users, only: [ :show, :index ] do

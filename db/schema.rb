@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[7.1].define(version: 2026_04_11_000002) do
+ActiveRecord::Schema[7.1].define(version: 2026_04_12_000002) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
 
@@ -81,6 +81,16 @@ ActiveRecord::Schema[7.1].define(version: 2026_04_11_000002) do
     t.index ["room_membership_id"], name: "index_channel_permissions_on_room_membership_id"
   end
 
+  create_table "direct_message_reactions", force: :cascade do |t|
+    t.bigint "direct_message_id", null: false
+    t.bigint "user_id", null: false
+    t.string "emoji", null: false
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["direct_message_id", "user_id", "emoji"], name: "idx_dm_reactions_unique", unique: true
+    t.index ["user_id"], name: "index_direct_message_reactions_on_user_id"
+  end
+
   create_table "direct_messages", force: :cascade do |t|
     t.text "body", null: false
     t.bigint "sender_id", null: false
@@ -90,6 +100,8 @@ ActiveRecord::Schema[7.1].define(version: 2026_04_11_000002) do
     t.boolean "deleted", default: false, null: false
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
+    t.bigint "parent_id"
+    t.index ["parent_id"], name: "index_direct_messages_on_parent_id"
     t.index ["recipient_id", "read"], name: "index_direct_messages_on_recipient_id_and_read"
     t.index ["recipient_id"], name: "index_direct_messages_on_recipient_id"
     t.index ["sender_id", "recipient_id"], name: "index_direct_messages_on_sender_id_and_recipient_id"

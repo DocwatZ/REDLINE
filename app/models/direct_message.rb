@@ -3,9 +3,11 @@
 class DirectMessage < ApplicationRecord
   belongs_to :sender, class_name: "User"
   belongs_to :recipient, class_name: "User"
+  belongs_to :parent, class_name: "DirectMessage", optional: true
   has_many_attached :files
+  has_many :direct_message_reactions, dependent: :destroy
 
-  validates :body, presence: true, length: { maximum: 4000 }
+  validates :body, length: { maximum: 4000 }
 
   before_validation :sanitize_body
 
@@ -17,7 +19,7 @@ class DirectMessage < ApplicationRecord
   }
 
   scope :conversation, ->(user_a_id, user_b_id) {
-    between(user_a_id, user_b_id).where(deleted: false)
+    between(user_a_id, user_b_id).where(deleted: false).includes(:parent, :sender, :recipient)
   }
 
   def display_body

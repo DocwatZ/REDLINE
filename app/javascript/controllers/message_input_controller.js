@@ -312,6 +312,7 @@ export default class extends Controller {
 
   // ── Private ────────────────────────────────────────────────────────────────
   #handleReply(event) {
+    if (event.detail.type === "dm") return  // DM replies handled by dm-input
     this._replyParentId = event.detail.messageId
     if (this.hasReplyBannerTarget) {
       this.replyBannerTarget.classList.remove("hidden")
