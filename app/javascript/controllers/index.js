@@ -17,6 +17,8 @@ import SearchController       from "controllers/search_controller"
 import InviteController       from "controllers/invite_controller"
 import E2eeController         from "controllers/e2ee_controller"
 import MarkdownController     from "controllers/markdown_controller"
+import UsernameCheckController from "controllers/username_check_controller"
+import MemberRoleController    from "controllers/member_role_controller"
 
 application.register("chat",            ChatController)
 application.register("dm-chat",         DmChatController)
@@ -35,3 +37,5 @@ application.register("search",          SearchController)
 application.register("invite",          InviteController)
 application.register("e2ee",            E2eeController)
 application.register("markdown",        MarkdownController)
+application.register("username-check",  UsernameCheckController)
+application.register("member-role",     MemberRoleController)

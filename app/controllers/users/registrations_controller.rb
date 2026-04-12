@@ -2,6 +2,7 @@
 
 class Users::RegistrationsController < Devise::RegistrationsController
   before_action :check_signup_enabled!, only: [:new, :create]
+  before_action :configure_account_update_params, only: [:update]
 
   def create
     # Turbo Drive sends Accept: text/vnd.turbo-stream.html, causing Rails to
@@ -43,5 +44,12 @@ class Users::RegistrationsController < Devise::RegistrationsController
     unless AppSetting.instance.self_signup_enabled?
       redirect_to registration_closed_path
     end
+  end
+
+  def configure_account_update_params
+    devise_parameter_sanitizer.permit(:account_update, keys: [
+      :display_name, :email, :bio, :avatar, :avatar_color,
+      :link_previews_enabled, :username, :current_password
+    ])
   end
 end

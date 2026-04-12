@@ -27,6 +27,8 @@ pin "controllers/status_picker_controller",   to: "controllers/status_picker_con
 pin "controllers/search_controller",          to: "controllers/search_controller.js"
 pin "controllers/invite_controller",          to: "controllers/invite_controller.js"
 pin "controllers/e2ee_controller",            to: "controllers/e2ee_controller.js"
+pin "controllers/username_check_controller",  to: "controllers/username_check_controller.js"
+pin "controllers/member_role_controller",     to: "controllers/member_role_controller.js"
 
 # Services
 pin "services/livekit_singleton", to: "services/livekit_singleton.js"

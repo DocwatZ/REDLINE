@@ -78,6 +78,7 @@ Rails.application.routes.draw do
       end
     end
     resources :invites, only: [:index, :create]
+    resources :room_memberships, only: [:update], param: :id
   end
 
   # Individual direct-message actions (edit / delete / react)
@@ -91,6 +92,7 @@ Rails.application.routes.draw do
   resources :users, only: [ :show, :index ] do
     resource :direct_messages, only: [ :show, :create ]
     post "status", to: "users#update_status", on: :collection
+    get "username_check", to: "users#username_check", on: :collection
   end
 
   root to: "rooms#index"

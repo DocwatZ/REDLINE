@@ -19,6 +19,14 @@ class UsersController < ApplicationController
     @user = User.find(params[:id])
   end
 
+  def username_check
+    username = params[:username].to_s.strip
+    taken = User.where("LOWER(username) = ?", username.downcase)
+                .where.not(id: current_user.id)
+                .exists?
+    render json: { available: !taken }
+  end
+
   def update_status
     current_user.update!(status: params[:status]) if User::STATUSES.include?(params[:status])
     head :ok
