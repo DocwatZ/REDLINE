@@ -1,5 +1,37 @@
 <%# Video/Voice participant grid — shown when user joins a voice channel %>
 <% if room.voice_channel? %>
+  <%# Pre-call modal (shown before joining a voice call) %>
+  <div id="precall-modal" class="modal hidden" role="dialog" aria-modal="true" aria-label="Ready to join?" style="display:none">
+    <div class="modal-content" style="max-width:28rem">
+      <div class="modal-header">
+        <h2 class="text-sm font-semibold text-primary">Ready to join <%= h(room.name) %>?</h2>
+      </div>
+      <div style="padding:1rem;display:flex;flex-direction:column;gap:1rem">
+        <div style="position:relative;background:#000;border-radius:var(--rl-radius);overflow:hidden;aspect-ratio:16/9;max-height:180px">
+          <video id="precall-preview" autoplay muted playsinline
+                 style="width:100%;height:100%;object-fit:cover"></video>
+          <div id="precall-no-video" style="position:absolute;inset:0;display:flex;align-items:center;justify-content:center;color:#fff;font-size:.75rem;text-align:center;padding:.5rem">
+            Camera not available
+          </div>
+        </div>
+        <div>
+          <label class="text-xs font-medium text-muted block mb-1" for="precall-audioinput">Microphone</label>
+          <select id="precall-audioinput" class="input-field w-full"></select>
+        </div>
+        <div>
+          <label class="text-xs font-medium text-muted block mb-1" for="precall-videoinput">Camera</label>
+          <select id="precall-videoinput" class="input-field w-full"></select>
+        </div>
+        <div class="flex gap-2 justify-end">
+          <button type="button" class="btn btn-ghost" data-action="click->channel#cancelPrecall">Cancel</button>
+          <button type="button" class="btn-accent" style="padding:.5rem 1.25rem" data-action="click->channel#confirmJoin">
+            Join Now
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
   <div id="call-panel"
        class="channel-call-panel hidden"
        aria-live="polite"

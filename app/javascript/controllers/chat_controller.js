@@ -1,5 +1,6 @@
 import { Controller } from "@hotwired/stimulus"
 import consumer from "channels/consumer"
+import { formatMessage } from "controllers/markdown_controller"
 
 /**
  * Chat controller — manages the room's ActionCable subscription,
@@ -22,18 +23,63 @@ export default class extends Controller {
       }
     )
     this.scrollToBottom(false)
+    this._highlightAnchoredMessage()
+    this._removeSkeleton()
     this._threadMessageId = null
     this._handleOpenThread = (e) => this.openThread(e.detail.messageId)
     document.addEventListener("message:open-thread", this._handleOpenThread)
+
+    this._onTyping = () => this.subscription?.perform("typing")
+    document.addEventListener("message:typing", this._onTyping)
+
+    this._loadingMore = false
+    this._noMoreMessages = false
+    this._onScroll = this.#handleScroll.bind(this)
+    this.element.addEventListener("scroll", this._onScroll)
+
+    // Decrypt any server-rendered E2EE messages on initial page load
+    this._decryptExistingMessages()
   }
 
   disconnect() {
     this.subscription?.unsubscribe()
     document.removeEventListener("message:open-thread", this._handleOpenThread)
+    document.removeEventListener("message:typing", this._onTyping)
+    this.element.removeEventListener("scroll", this._onScroll)
   }
 
   appendMessage(data) {
     if (data.type === "reaction_update") { this.updateReactions(data); return }
+    if (data.type === "typing") { this.showTypingIndicator(data.user_id, data.display_name); return }
+    if (data.type === "pin_update") { this.handlePinUpdate(data); return }
+
+    // If the thread panel is open and this message is a reply to the thread's parent, append it
+    if (this._threadMessageId && data.parent_id === this._threadMessageId) {
+      const threadContainer = document.getElementById("thread-messages")
+      if (threadContainer && !threadContainer.querySelector(`[data-thread-msg-id="${data.id}"]`)) {
+        const el = this.buildThreadMessage(data)
+        el.setAttribute("data-thread-msg-id", data.id)
+        threadContainer.appendChild(el)
+        threadContainer.scrollTop = threadContainer.scrollHeight
+      }
+    }
+
+    // Decrypt E2EE messages before rendering
+    if (data.ciphertext) {
+      this._decryptAndRender(data)
+      return
+    }
+
+    this._renderMessage(data)
+  }
+
+  async _decryptAndRender(data) {
+    const decryptedBody = await this._tryDecrypt(data.ciphertext)
+    data.body = decryptedBody
+    this._renderMessage(data)
+  }
+
+  _renderMessage(data) {
     const wasAtBottom = this.isAtBottom()
     const existing = document.getElementById(`message-${data.id}`)
 
@@ -171,7 +217,7 @@ export default class extends Controller {
         </div>
         <div class="${bodyClass}"${bodyLp}
              data-message-actions-target="bodyDiv">
-          ${this.escapeHtml(data.body)}
+          ${data.deleted ? this.escapeHtml(data.body) : formatMessage(data.body)}
         </div>
         ${editForm}
       </div>
@@ -183,6 +229,88 @@ export default class extends Controller {
   scrollToBottom(smooth = true) {
     const el = this.element
     el.scrollTo({ top: el.scrollHeight, behavior: smooth ? "smooth" : "instant" })
+  }
+
+  _removeSkeleton() {
+    const skeleton = document.getElementById("chat-skeleton")
+    if (skeleton) skeleton.remove()
+  }
+
+  _highlightAnchoredMessage() {
+    const hash = window.location.hash
+    if (!hash.startsWith("#message-")) return
+    const id = hash.replace("#message-", "")
+    const el = document.getElementById(`message-${id}`)
+    if (!el) return
+    el.scrollIntoView({ behavior: "smooth", block: "center" })
+    el.classList.add("message-highlight")
+    setTimeout(() => el.classList.remove("message-highlight"), 2000)
+  }
+
+  showTypingIndicator(userId, displayName) {
+    if (userId === this.currentUserIdValue) return
+    const indicator = document.getElementById("typing-indicator")
+    if (!indicator) return
+    indicator.textContent = `${displayName} is typing…`
+    clearTimeout(this._typingClear)
+    this._typingClear = setTimeout(() => { indicator.textContent = "" }, 3000)
+  }
+
+  handlePinUpdate(data) {
+    const banner = document.getElementById("pinned-banner")
+    if (!banner) return
+    if (data.pinned) {
+      banner.style.removeProperty("display")
+      banner.classList.remove("hidden")
+      let item = banner.querySelector(`[data-pinned-msg-id="${data.message_id}"]`)
+      if (!item) {
+        item = document.createElement("div")
+        item.className = "pinned-message-item"
+        item.setAttribute("data-pinned-msg-id", data.message_id)
+        banner.appendChild(item)
+      }
+      item.innerHTML = `<span class="text-xs" style="color:var(--rl-text-muted)">${this.escapeHtml(data.display_name || "")}:</span> <span class="text-xs" style="color:var(--rl-text-secondary)">${this.escapeHtml(data.body || "")}</span>`
+    } else {
+      const item = banner.querySelector(`[data-pinned-msg-id="${data.message_id}"]`)
+      if (item) item.remove()
+      if (!banner.querySelector(".pinned-message-item")) {
+        banner.classList.add("hidden")
+      }
+    }
+  }
+
+  #handleScroll() {
+    if (this.element.scrollTop < 50 && !this._loadingMore && !this._noMoreMessages) {
+      this.loadOlderMessages()
+    }
+  }
+
+  async loadOlderMessages() {
+    this._loadingMore = true
+    const firstMsg = this.element.querySelector("article[id^='message-']")
+    if (!firstMsg) { this._loadingMore = false; return }
+    const firstId = firstMsg.id.replace("message-", "")
+    const prevScrollHeight = this.element.scrollHeight
+    try {
+      const token = document.querySelector('meta[name="csrf-token"]')?.content
+      const resp = await fetch(`/rooms/${this.roomSlugValue}/messages?before=${firstId}`, {
+        headers: { "Accept": "application/json", "X-CSRF-Token": token ?? "" }
+      })
+      if (!resp.ok) { this._loadingMore = false; return }
+      const messages = await resp.json()
+      if (messages.length === 0) { this._noMoreMessages = true; this._loadingMore = false; return }
+      messages.forEach(data => {
+        if (document.getElementById(`message-${data.id}`)) return
+        const el = this.buildMessageElement(data)
+        const firstChild = this.element.querySelector("article[id^='message-']")
+        if (firstChild) firstChild.before(el)
+      })
+      const newScrollHeight = this.element.scrollHeight
+      this.element.scrollTop = newScrollHeight - prevScrollHeight
+    } catch (err) {
+      console.error("Load older messages error:", err)
+    }
+    this._loadingMore = false
   }
 
   isAtBottom() {
@@ -266,6 +394,7 @@ export default class extends Controller {
     const all = [data.parent, ...data.replies]
     all.forEach(msg => {
       const el = this.buildThreadMessage(msg)
+      el.setAttribute("data-thread-msg-id", msg.id)
       container.appendChild(el)
     })
     container.scrollTop = container.scrollHeight
@@ -287,7 +416,7 @@ export default class extends Controller {
           <time class="text-xs text-muted">${this.formatTime(msg.created_at)}</time>
         </div>
         <div class="text-sm text-secondary mt-0.5 leading-relaxed whitespace-pre-wrap break-words">
-          ${this.highlightMentions(msg.body)}
+          ${formatMessage(msg.body)}
         </div>
       </div>`
     return article
@@ -323,5 +452,62 @@ export default class extends Controller {
         this.openThread(this._threadMessageId)
       })
       .catch(err => console.error("Thread reply error:", err))
+  }
+
+  // ── E2EE helpers ──────────────────────────────────────────────────────────
+
+  static E2EE_INIT_DELAY_MS = 500
+  static E2EE_KEY_POLL_INTERVAL_MS = 500
+  static E2EE_MAX_KEY_POLL_ATTEMPTS = 10
+
+  _getE2eeController() {
+    const app = this.application
+    return app.getControllerForElementAndIdentifier(this.element, "e2ee")
+  }
+
+  async _tryDecrypt(ciphertext) {
+    try {
+      const e2ee = this._getE2eeController()
+      if (e2ee && e2ee.isReady()) {
+        return await e2ee.decrypt(ciphertext)
+      }
+      return "\u{1F512} [encrypted message \u2014 key not available]"
+    } catch (err) {
+      console.warn("[E2EE] Decryption failed:", err)
+      return "\u{1F512} [encrypted message \u2014 decryption failed]"
+    }
+  }
+
+  async _decryptExistingMessages() {
+    // Find all server-rendered messages that have ciphertext
+    const encryptedMessages = this.element.querySelectorAll("[data-ciphertext]")
+    if (encryptedMessages.length === 0) return
+
+    // Wait briefly for the e2ee controller to initialize
+    await new Promise(resolve => setTimeout(resolve, this.constructor.E2EE_INIT_DELAY_MS))
+
+    const e2ee = this._getE2eeController()
+    if (!e2ee) return
+
+    // Wait for the room key to load (poll with timeout)
+    let attempts = 0
+    while (!e2ee.isReady() && attempts < this.constructor.E2EE_MAX_KEY_POLL_ATTEMPTS) {
+      await new Promise(resolve => setTimeout(resolve, this.constructor.E2EE_KEY_POLL_INTERVAL_MS))
+      attempts++
+    }
+
+    for (const msgEl of encryptedMessages) {
+      const ciphertext = msgEl.getAttribute("data-ciphertext")
+      if (!ciphertext) continue
+
+      const bodyDiv = msgEl.querySelector(".message-body")
+      if (!bodyDiv) continue
+
+      const decrypted = await this._tryDecrypt(ciphertext)
+      bodyDiv.textContent = decrypted
+
+      // Update message-actions body value for edit/reply
+      msgEl.setAttribute("data-message-actions-body-value", decrypted)
+    }
   }
 }

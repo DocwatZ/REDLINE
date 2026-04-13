@@ -1,4 +1,5 @@
 import { Controller } from "@hotwired/stimulus"
+import LiveKitSingleton from "services/livekit_singleton"
 
 /**
  * Channel controller — unified state manager for the channel layout.
@@ -32,6 +33,13 @@ export default class extends Controller {
     this.inCall = false
     this._escapeEl = null
 
+    // Restore persisted call if navigated away and back
+    if (LiveKitSingleton.room) {
+      this.livekitRoom = LiveKitSingleton.room
+      this.inCall = true
+      this._restoreCallUI()
+    }
+
     this.membersVisible = !this.isMobile()
     this.updateMembersPanel()
     this.updateStatusDot("connected")
@@ -39,11 +47,15 @@ export default class extends Controller {
     // Listen for resize to handle responsive transitions
     this._onResize = this.handleResize.bind(this)
     window.addEventListener("resize", this._onResize)
+
+    this._onTurboVisit = this._handleNavigation.bind(this)
+    document.addEventListener("turbo:before-visit", this._onTurboVisit)
   }
 
   disconnect() {
-    this.livekitRoom?.disconnect()
+    if (!this.inCall) this.livekitRoom?.disconnect()
     window.removeEventListener("resize", this._onResize)
+    document.removeEventListener("turbo:before-visit", this._onTurboVisit)
   }
 
   // ─── Layout ──────────────────────────────────────────────────
@@ -146,6 +158,10 @@ export default class extends Controller {
   // ─── Voice/Video Lifecycle ───────────────────────────────────
 
   async joinCall() {
+    await this.openPrecallModal()
+  }
+
+  async _doJoinCall() {
     if (this.inCall || !this.voiceValue) return
 
     const loading = document.getElementById("call-loading")
@@ -273,6 +289,7 @@ export default class extends Controller {
     })
 
     await this.livekitRoom.connect(url, token)
+    LiveKitSingleton.room = this.livekitRoom
     await this.livekitRoom.localParticipant.setMicrophoneEnabled(true)
     this.renderLocalParticipant()
   }
@@ -404,6 +421,7 @@ export default class extends Controller {
   leaveCall() {
     this.livekitRoom?.disconnect()
     this.livekitRoom = null
+    LiveKitSingleton.room = null
     this.inCall = false
     this.localMicMuted = false
     this.localDeafened = false
@@ -469,6 +487,19 @@ export default class extends Controller {
     const data = encoder.encode(JSON.stringify(message))
     this.livekitRoom.localParticipant.publishData(data, { reliable: true })
 
+    // Persist to DB so late joiners can see the message
+    const csrf = document.querySelector('meta[name="csrf-token"]')?.content
+    const roomSlug = this.roomSlugValue
+    fetch(`/rooms/${roomSlug}/messages`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "Accept": "application/json",
+        "X-CSRF-Token": csrf ?? ""
+      },
+      body: JSON.stringify({ message: { body, message_context: "in_call" } })
+    }).catch(err => console.warn("Failed to persist in-call message:", err))
+
     this.appendInCallMessage(message, null)
     input.value = ""
   }
@@ -522,5 +553,137 @@ export default class extends Controller {
     }
     this._escapeEl.textContent = String(str ?? "")
     return this._escapeEl.innerHTML
+  }
+
+  // ─── Device Picker ──────────────────────────────────────────────────
+  async openDevicePicker() {
+    const modal = document.getElementById("device-picker-modal")
+    if (!modal) return
+    modal.classList.remove("hidden")
+    modal.style.removeProperty("display")
+    try {
+      const devices = await navigator.mediaDevices.enumerateDevices()
+      const kinds = ["audioinput", "audiooutput", "videoinput"]
+      kinds.forEach(kind => {
+        const sel = modal.querySelector(`[data-device-kind="${kind}"]`)
+        if (!sel) return
+        sel.innerHTML = ""
+        devices.filter(d => d.kind === kind).forEach(d => {
+          const opt = document.createElement("option")
+          opt.value = d.deviceId
+          opt.textContent = d.label || `${kind} ${sel.options.length + 1}`
+          sel.appendChild(opt)
+        })
+      })
+    } catch (err) {
+      console.warn("Could not enumerate devices:", err)
+    }
+  }
+
+  async applyDevices() {
+    const modal = document.getElementById("device-picker-modal")
+    if (!modal || !this.livekitRoom) { this.closeDevicePicker(); return }
+    const kinds = { audioinput: "audioinput", audiooutput: "audiooutput", videoinput: "videoinput" }
+    for (const [kind] of Object.entries(kinds)) {
+      const sel = modal.querySelector(`[data-device-kind="${kind}"]`)
+      if (!sel || !sel.value) continue
+      try {
+        await this.livekitRoom.switchActiveDevice(kind, sel.value)
+      } catch (err) {
+        console.warn(`Could not switch ${kind}:`, err)
+      }
+    }
+    this.closeDevicePicker()
+  }
+
+  closeDevicePicker() {
+    const modal = document.getElementById("device-picker-modal")
+    if (!modal) return
+    modal.classList.add("hidden")
+    modal.style.display = "none"
+  }
+
+  // ─── Pre-call Modal ─────────────────────────────────────────────────
+  async openPrecallModal() {
+    const modal = document.getElementById("precall-modal")
+    if (!modal) { await this._doJoinCall(); return }
+    modal.classList.remove("hidden")
+    modal.style.removeProperty("display")
+    this._precallStream = null
+    try {
+      const devices = await navigator.mediaDevices.enumerateDevices()
+      const audioSel = document.getElementById("precall-audioinput")
+      const videoSel = document.getElementById("precall-videoinput")
+      if (audioSel) {
+        audioSel.innerHTML = ""
+        devices.filter(d => d.kind === "audioinput").forEach(d => {
+          const opt = document.createElement("option")
+          opt.value = d.deviceId
+          opt.textContent = d.label || `Microphone ${audioSel.options.length + 1}`
+          audioSel.appendChild(opt)
+        })
+      }
+      if (videoSel) {
+        videoSel.innerHTML = ""
+        devices.filter(d => d.kind === "videoinput").forEach(d => {
+          const opt = document.createElement("option")
+          opt.value = d.deviceId
+          opt.textContent = d.label || `Camera ${videoSel.options.length + 1}`
+          videoSel.appendChild(opt)
+        })
+      }
+      const stream = await navigator.mediaDevices.getUserMedia({ video: true, audio: false })
+      this._precallStream = stream
+      const video = document.getElementById("precall-preview")
+      const noVideo = document.getElementById("precall-no-video")
+      if (video) { video.srcObject = stream; if (noVideo) noVideo.style.display = "none" }
+    } catch (err) {
+      console.warn("Pre-call preview error:", err)
+    }
+  }
+
+  async confirmJoin() {
+    this._stopPrecallStream()
+    this._closePrecallModal()
+    await this._doJoinCall()
+  }
+
+  cancelPrecall() {
+    this._stopPrecallStream()
+    this._closePrecallModal()
+  }
+
+  _stopPrecallStream() {
+    if (this._precallStream) {
+      this._precallStream.getTracks().forEach(t => t.stop())
+      this._precallStream = null
+    }
+  }
+
+  _closePrecallModal() {
+    const modal = document.getElementById("precall-modal")
+    if (!modal) return
+    modal.classList.add("hidden")
+    modal.style.display = "none"
+    const video = document.getElementById("precall-preview")
+    if (video) { video.srcObject = null }
+  }
+
+  // ─── Turbo Navigation ────────────────────────────────────────────────
+  _handleNavigation(event) {
+    if (this.inCall) {
+      if (!confirm("You are in a call. Leave and navigate away?")) {
+        event.preventDefault()
+      } else {
+        this.leaveCall()
+      }
+    }
+  }
+
+  _restoreCallUI() {
+    const callPanel = document.getElementById("call-panel")
+    if (callPanel) callPanel.classList.remove("hidden")
+    const joinBtn = document.getElementById("join-call-btn")
+    if (joinBtn) joinBtn.textContent = "Leave"
   }
 }

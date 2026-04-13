@@ -3,9 +3,12 @@
 class DirectMessage < ApplicationRecord
   belongs_to :sender, class_name: "User"
   belongs_to :recipient, class_name: "User"
+  belongs_to :parent, class_name: "DirectMessage", optional: true
   has_many_attached :files
+  has_many :direct_message_reactions, dependent: :destroy
 
-  validates :body, presence: true, length: { maximum: 4000 }
+  validates :body, length: { maximum: 4000 }
+  validate :body_or_files_present
 
   before_validation :sanitize_body
 
@@ -17,7 +20,7 @@ class DirectMessage < ApplicationRecord
   }
 
   scope :conversation, ->(user_a_id, user_b_id) {
-    between(user_a_id, user_b_id).where(deleted: false)
+    between(user_a_id, user_b_id).where(deleted: false).includes(:parent, :sender, :recipient)
   }
 
   def display_body
@@ -28,5 +31,10 @@ class DirectMessage < ApplicationRecord
 
   def sanitize_body
     self.body = body.to_s.strip
+  end
+
+  def body_or_files_present
+    return if body.present? || files.attached?
+    errors.add(:base, "must include a message or attachment")
   end
 end

@@ -89,5 +89,47 @@
         <path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/>
       </svg>
     <% end %>
+
+    <%# Device picker (voice channels only) %>
+    <% if room.voice_channel? %>
+      <div id="device-picker-modal" class="modal hidden" role="dialog" aria-modal="true" aria-label="Device Settings" style="display:none">
+        <div class="modal-content" style="max-width:24rem">
+          <div class="modal-header">
+            <h2 class="text-sm font-semibold text-primary">Audio & Video Settings</h2>
+            <button type="button" class="btn-icon" aria-label="Close device settings"
+                    data-action="click->channel#closeDevicePicker">
+              <svg aria-hidden="true" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/>
+              </svg>
+            </button>
+          </div>
+          <div class="modal-body" style="display:flex;flex-direction:column;gap:1rem;padding:1rem">
+            <div>
+              <label class="text-xs font-medium text-muted block mb-1" for="dp-audioinput">Microphone</label>
+              <select id="dp-audioinput" class="input-field w-full" data-device-kind="audioinput"></select>
+            </div>
+            <div>
+              <label class="text-xs font-medium text-muted block mb-1" for="dp-audiooutput">Speaker</label>
+              <select id="dp-audiooutput" class="input-field w-full" data-device-kind="audiooutput"></select>
+            </div>
+            <div>
+              <label class="text-xs font-medium text-muted block mb-1" for="dp-videoinput">Camera</label>
+              <select id="dp-videoinput" class="input-field w-full" data-device-kind="videoinput"></select>
+            </div>
+            <div class="flex gap-2 justify-end">
+              <button type="button" class="btn btn-ghost" data-action="click->channel#closeDevicePicker">Cancel</button>
+              <button type="button" class="btn btn-primary" data-action="click->channel#applyDevices">Apply</button>
+            </div>
+          </div>
+        </div>
+      </div>
+      <button type="button" class="btn-icon" title="Device settings" aria-label="Open device settings"
+              data-action="click->channel#openDevicePicker">
+        <svg aria-hidden="true" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+          <circle cx="12" cy="12" r="3"/>
+          <path d="M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 010 2.83 2 2 0 01-2.83 0l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 01-2 2 2 2 0 01-2-2v-.09A1.65 1.65 0 009 19.4a1.65 1.65 0 00-1.82.33l-.06.06a2 2 0 01-2.83 0 2 2 0 010-2.83l.06-.06A1.65 1.65 0 004.68 15a1.65 1.65 0 00-1.51-1H3a2 2 0 01-2-2 2 2 0 012-2h.09A1.65 1.65 0 004.6 9a1.65 1.65 0 00-.33-1.82l-.06-.06a2 2 0 010-2.83 2 2 0 012.83 0l.06.06A1.65 1.65 0 009 4.68a1.65 1.65 0 001-1.51V3a2 2 0 012-2 2 2 0 012 2v.09a1.65 1.65 0 001 1.51 1.65 1.65 0 001.82-.33l.06-.06a2 2 0 012.83 0 2 2 0 010 2.83l-.06.06A1.65 1.65 0 0019.4 9a1.65 1.65 0 001.51 1H21a2 2 0 012 2 2 2 0 01-2 2h-.09a1.65 1.65 0 00-1.51 1z"/>
+        </svg>
+      </button>
+    <% end %>
   </div>
 </header>

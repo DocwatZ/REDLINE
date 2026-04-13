@@ -60,20 +60,58 @@
   </div>
 
   <%# Input %>
-  <div class="border-t p-3 flex-shrink-0" style="background:var(--rl-surface)">
+  <div class="channel-message-compose"
+       data-controller="dm-input"
+       aria-label="Compose direct message">
+    <%# Reply-to banner (hidden until a reply is triggered) %>
+    <div class="message-reply-banner hidden"
+         data-dm-input-target="replyBanner"
+         role="status"
+         aria-live="polite">
+      <div class="flex items-center gap-2 flex-1 min-w-0">
+        <svg aria-hidden="true" width="12" height="12" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M3 10h10a8 8 0 018 8v2M3 10l6 6M3 10l6-6"/>
+        </svg>
+        <span class="text-xs text-muted">Replying to</span>
+        <span class="text-xs font-semibold text-primary" data-dm-input-target="replyAuthor"></span>
+        <span class="text-xs text-secondary truncate" data-dm-input-target="replyPreview"></span>
+      </div>
+      <button type="button" class="btn-icon" style="min-height:1.5rem;min-width:1.5rem;padding:.25rem"
+              aria-label="Cancel reply"
+              data-action="click->dm-input#clearReply">
+        <svg aria-hidden="true" width="12" height="12" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/>
+        </svg>
+      </button>
+    </div>
+
     <form id="dm-form"
           method="post"
           action="<%= user_direct_messages_path(@partner) %>"
-          data-controller="dm-input"
           data-action="submit->dm-input#send"
           data-turbo="false"
           aria-label="Send a direct message to <%= @partner.display_name %>">
       <%= hidden_field_tag :authenticity_token, form_authenticity_token %>
-      <div class="flex items-end gap-2">
-        <div class="flex-1 relative">
+      <div class="channel-compose-row">
+        <div class="channel-compose-field">
           <label for="dm-body" class="sr-only">
             Message <%= @partner.display_name %>
           </label>
+          <button type="button"
+                  class="btn-icon channel-attach-btn"
+                  aria-label="Attach files"
+                  title="Attach files"
+                  data-action="click->dm-input#openFilePicker"
+                  style="flex-shrink:0;margin-right:.25rem;color:var(--rl-text-muted)">
+            <svg aria-hidden="true" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M15.172 7l-6.586 6.586a2 2 0 102.828 2.828l6.414-6.586a4 4 0 00-5.656-5.656l-6.415 6.585a6 6 0 108.486 8.486L20.5 13"/>
+            </svg>
+          </button>
+          <input type="file" multiple class="hidden"
+                 id="dm-file-input"
+                 data-dm-input-target="fileInput"
+                 data-action="change->dm-input#filesSelected"
+                 aria-label="Select files to attach">
           <textarea id="dm-body"
                     name="direct_message[body]"
                     rows="1"
@@ -89,13 +127,15 @@
           <span id="dm-hint" class="sr-only">Press Enter to send, Shift+Enter for new line</span>
         </div>
         <button type="submit"
-                class="btn-accent w-11 h-11 flex items-center justify-center flex-shrink-0"
+                class="btn-accent channel-send-btn"
                 aria-label="Send direct message">
           <svg aria-hidden="true" class="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">
             <path d="M2.01 21L23 12 2.01 3 2 10l15 2-15 2z"/>
           </svg>
         </button>
       </div>
+      <%# File preview area %>
+      <div id="dm-file-preview" class="message-file-preview hidden" data-dm-input-target="filePreview" aria-live="polite"></div>
     </form>
   </div>
 </div>

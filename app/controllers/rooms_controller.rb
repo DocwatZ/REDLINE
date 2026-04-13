@@ -11,10 +11,14 @@ class RoomsController < ApplicationController
   end
 
   def show
-    @messages = @room.messages.visible.standard_messages.recent.includes(:user).last(50)
+    blocked_ids = current_user.blocked_users.pluck(:id)
+    @messages = @room.messages.visible.standard_messages.where.not(user_id: blocked_ids).recent.includes(:user).last(50)
     @in_call_messages = @room.voice_channel? ? @room.messages.visible.in_call_messages.recent.includes(:user).last(20) : []
     @members = @room.members.order(:display_name)
     @subchannels = @room.subchannels.by_position if @room.voice_channel?
+    @pinned_messages = @room.messages.where(pinned: true).includes(:user).limit(5)
+    membership = @room.membership_for(current_user)
+    membership&.update_column(:last_read_at, Time.current)
   end
 
   def new
@@ -59,6 +63,11 @@ class RoomsController < ApplicationController
 
     unless @room.member?(current_user)
       @room.room_memberships.create!(user: current_user, role: "member")
+      AuditService.log(
+        action: "room.joined",
+        user: current_user,
+        metadata: { room_id: @room.id, room_slug: @room.slug, room_name: @room.name }
+      )
     end
 
     redirect_to @room
@@ -71,7 +80,14 @@ class RoomsController < ApplicationController
       return
     end
 
-    membership&.destroy
+    if membership
+      AuditService.log(
+        action: "room.left",
+        user: current_user,
+        metadata: { room_id: @room.id, room_slug: @room.slug, room_name: @room.name }
+      )
+      membership.destroy
+    end
     redirect_to rooms_path, notice: "You left #{@room.name}."
   end
 

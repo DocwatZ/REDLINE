@@ -16,18 +16,53 @@ class ChatChannel < ApplicationCable::Channel
   def receive(data)
     return unless @room
 
+    # Prevent non-admins from posting to announcement channels via WebSocket
+    if @room.announcement?
+      membership = @room.membership_for(current_user)
+      return unless membership&.admin?
+    end
+
     message_context = data["message_context"] || "standard"
 
-    message = @room.messages.create!(
+    message_attrs = {
       user: current_user,
-      body: data["body"].to_s.strip.first(4000),
       parent_id: data["parent_id"].presence,
       message_context: message_context
-    )
+    }
+
+    # E2EE rooms receive ciphertext instead of body
+    if data["ciphertext"].present?
+      message_attrs[:ciphertext] = data["ciphertext"].to_s.first(8000)
+    else
+      message_attrs[:body] = data["body"].to_s.strip.first(4000)
+    end
+
+    message = @room.messages.create!(message_attrs)
 
     broadcast_channel = message.in_call? ? "voice_chat_#{@room.id}" : "chat_#{@room.id}"
     ActionCable.server.broadcast(broadcast_channel, render_message(message))
     detect_mentions(message)
+
+    # Broadcast unread count to other members
+    @room.room_memberships.each do |m|
+      next if m.user_id == current_user.id
+      count = @room.messages.where("created_at > ?", m.last_read_at || Time.at(0)).count
+      ActionCable.server.broadcast("user_#{m.user_id}", {
+        type: "channel_unread",
+        room_slug: @room.slug,
+        room_id: @room.id,
+        count: count
+      })
+    end
+  end
+
+  def typing
+    return unless @room
+    ActionCable.server.broadcast("chat_#{@room.id}", {
+      type: "typing",
+      user_id: current_user.id,
+      display_name: current_user.display_name
+    })
   end
 
   def unsubscribed
@@ -49,6 +84,7 @@ class ChatChannel < ApplicationCable::Channel
     {
       id: message.id,
       body: message.display_body,
+      ciphertext: message.ciphertext,
       room_id: message.room_id,
       user_id: message.user_id,
       display_name: message.user.display_name,

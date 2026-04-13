@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[7.1].define(version: 2026_04_11_000002) do
+ActiveRecord::Schema[7.1].define(version: 2026_04_12_000004) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
 
@@ -81,6 +81,16 @@ ActiveRecord::Schema[7.1].define(version: 2026_04_11_000002) do
     t.index ["room_membership_id"], name: "index_channel_permissions_on_room_membership_id"
   end
 
+  create_table "direct_message_reactions", force: :cascade do |t|
+    t.bigint "direct_message_id", null: false
+    t.bigint "user_id", null: false
+    t.string "emoji", null: false
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["direct_message_id", "user_id", "emoji"], name: "idx_dm_reactions_unique", unique: true
+    t.index ["user_id"], name: "index_direct_message_reactions_on_user_id"
+  end
+
   create_table "direct_messages", force: :cascade do |t|
     t.text "body", null: false
     t.bigint "sender_id", null: false
@@ -90,6 +100,8 @@ ActiveRecord::Schema[7.1].define(version: 2026_04_11_000002) do
     t.boolean "deleted", default: false, null: false
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
+    t.bigint "parent_id"
+    t.index ["parent_id"], name: "index_direct_messages_on_parent_id"
     t.index ["recipient_id", "read"], name: "index_direct_messages_on_recipient_id_and_read"
     t.index ["recipient_id"], name: "index_direct_messages_on_recipient_id"
     t.index ["sender_id", "recipient_id"], name: "index_direct_messages_on_sender_id_and_recipient_id"
@@ -158,6 +170,7 @@ ActiveRecord::Schema[7.1].define(version: 2026_04_11_000002) do
     t.text "ciphertext"
     t.string "message_type", default: "text", null: false
     t.string "message_context", default: "standard"
+    t.boolean "pinned", default: false, null: false
     t.index ["parent_id"], name: "index_messages_on_parent_id"
     t.index ["room_id", "created_at"], name: "index_messages_on_room_id_and_created_at"
     t.index ["room_id"], name: "index_messages_on_room_id"
@@ -212,6 +225,7 @@ ActiveRecord::Schema[7.1].define(version: 2026_04_11_000002) do
     t.string "role", default: "member", null: false
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
+    t.datetime "last_read_at"
     t.index ["room_id", "user_id"], name: "index_room_memberships_on_room_id_and_user_id", unique: true
     t.index ["room_id"], name: "index_room_memberships_on_room_id"
     t.index ["user_id"], name: "index_room_memberships_on_user_id"

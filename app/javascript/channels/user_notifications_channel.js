@@ -45,8 +45,45 @@ consumer.subscriptions.create("UserNotificationsChannel", {
         badge.textContent = "1"
         link.appendChild(badge)
       }
+
+      if (document.body.dataset.dmSounds === "true") {
+        try {
+          const ctx = new (window.AudioContext || window.webkitAudioContext)()
+          const osc = ctx.createOscillator()
+          const gain = ctx.createGain()
+          osc.connect(gain)
+          gain.connect(ctx.destination)
+          osc.frequency.value = 880
+          osc.type = "sine"
+          gain.gain.setValueAtTime(0.1, ctx.currentTime)
+          gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.08)
+          osc.start(ctx.currentTime)
+          osc.stop(ctx.currentTime + 0.08)
+        } catch (e) { /* AudioContext not available */ }
+      }
+    } else if (data.type === "channel_unread") {
+      const link = document.querySelector(`[data-room-slug="${data.room_slug}"]`)
+      if (!link) return
+      const pathParts = window.location.pathname.split("/")
+      const roomIdx = pathParts.indexOf("rooms")
+      const currentRoomSlug = roomIdx >= 0 ? pathParts[roomIdx + 1] : null
+      if (currentRoomSlug === data.room_slug) return
+      let badge = link.querySelector(".channel-unread-badge")
+      if (data.count > 0) {
+        if (!badge) {
+          badge = document.createElement("span")
+          badge.className = "channel-unread-badge"
+          badge.setAttribute("aria-label", "unread messages")
+          link.appendChild(badge)
+        }
+        badge.textContent = data.count > 99 ? "99+" : data.count
+      } else if (badge) {
+        badge.remove()
+      }
     } else if (data.type === "mention") {
-      showToast(`Mentioned in #${data.room_name}`, `${data.sender_name}: ${data.body_preview}`)
+      if (document.body.dataset.mentionAlerts !== "false") {
+        showToast(`Mentioned in #${data.room_name}`, `${data.sender_name}: ${data.body_preview}`)
+      }
     } else if (data.type === "dm_read") {
       const dmEl = document.getElementById(`dm-${data.message_id}`)
       if (!dmEl) return

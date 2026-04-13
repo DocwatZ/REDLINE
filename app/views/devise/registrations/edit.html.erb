@@ -35,6 +35,24 @@
               minlength: 2, maxlength: 32, required: true, "aria-required": "true" %>
       </div>
 
+      <div data-controller="username-check">
+        <%= f.label :username, class: "form-label" %>
+        <div style="position:relative">
+          <%= f.text_field :username, class: "input-field",
+                autocomplete: "username",
+                minlength: 3, maxlength: 32,
+                pattern: "[a-zA-Z0-9_\\-]+",
+                title: "Letters, numbers, underscores, and hyphens only",
+                "aria-describedby": "username-hint username-status",
+                data: { action: "input->username-check#check" } %>
+          <span id="username-status"
+                aria-live="polite"
+                style="position:absolute;right:.75rem;top:50%;transform:translateY(-50%);font-size:.75rem"
+                data-username-check-target="status"></span>
+        </div>
+        <p id="username-hint" class="form-hint">3–32 characters. Letters, numbers, underscores, and hyphens only.</p>
+      </div>
+
       <div>
         <%= f.label :email, class: "form-label" %>
         <%= f.email_field :email, class: "input-field", autocomplete: "email",

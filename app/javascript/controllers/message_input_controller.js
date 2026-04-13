@@ -42,6 +42,14 @@ export default class extends Controller {
     const field = this.fieldTarget
     field.style.height = "auto"
     field.style.height = Math.min(field.scrollHeight, 192) + "px"
+    this.onTyping()
+  }
+
+  onTyping() {
+    clearTimeout(this._typingDebounce)
+    this._typingDebounce = setTimeout(() => {
+      document.dispatchEvent(new CustomEvent("message:typing"))
+    }, 500)
   }
 
   send(event) {
@@ -102,12 +110,32 @@ export default class extends Controller {
 
     const csrf = document.querySelector('meta[name="csrf-token"]')?.content
 
+    // Check if this room uses E2EE
+    const messagesDiv = document.getElementById("messages")
+    const isE2ee = messagesDiv?.dataset?.e2eeE2eeEnabledValue === "true"
+    let e2eeController = null
+    if (isE2ee) {
+      const app = this.application
+      e2eeController = app.getControllerForElementAndIdentifier(messagesDiv, "e2ee")
+      if (!e2eeController || !e2eeController.isReady()) {
+        this.announceError("E2EE key not ready — cannot send encrypted message")
+        return
+      }
+    }
+
     try {
       let response
       if (hasFiles) {
         // Use FormData for file uploads
         const formData = new FormData()
-        formData.append("message[body]", body)
+
+        if (isE2ee && e2eeController) {
+          const ciphertext = await e2eeController.encrypt(body)
+          formData.append("message[ciphertext]", ciphertext)
+        } else {
+          formData.append("message[body]", body)
+        }
+
         if (this._replyParentId) formData.append("message[parent_id]", this._replyParentId)
         this._selectedFiles.forEach(f => formData.append("message[files][]", f))
 
@@ -120,7 +148,14 @@ export default class extends Controller {
           body: formData
         })
       } else {
-        const payload = { body }
+        const payload = {}
+
+        if (isE2ee && e2eeController) {
+          payload.ciphertext = await e2eeController.encrypt(body)
+        } else {
+          payload.body = body
+        }
+
         if (this._replyParentId) payload.parent_id = this._replyParentId
 
         response = await fetch(`/rooms/${roomSlug}/messages`, {
@@ -285,6 +320,7 @@ export default class extends Controller {
 
   // ── Private ────────────────────────────────────────────────────────────────
   #handleReply(event) {
+    if (event.detail.type === "dm") return  // DM replies handled by dm-input
     this._replyParentId = event.detail.messageId
     if (this.hasReplyBannerTarget) {
       this.replyBannerTarget.classList.remove("hidden")

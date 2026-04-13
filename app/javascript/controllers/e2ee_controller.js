@@ -35,8 +35,10 @@ export default class extends Controller {
         await this._generateAndUploadKeyPair()
       }
       await this._loadRoomKey()
+      this._updateBanner()
     } catch (err) {
       console.error("[E2EE] init error:", err)
+      this._updateBanner()
     }
   }
 
@@ -182,5 +184,22 @@ export default class extends Controller {
       req.onsuccess = () => resolve()
       req.onerror = (e) => reject(e.target.error)
     })
+  }
+
+  // ── UI helpers ──────────────────────────────────────────────────────────────
+
+  _updateBanner() {
+    const banner = document.getElementById("e2ee-status-banner")
+    if (!banner) return
+    const textEl = banner.querySelector("p")
+    if (!textEl) return
+
+    if (this.isReady()) {
+      textEl.textContent = "Messages in this channel are encrypted. Your key is active."
+      banner.style.borderLeftColor = "var(--rl-success, #22c55e)"
+    } else {
+      textEl.textContent = "Encryption key not available. A channel admin must share the room key with you before you can read or send messages."
+      banner.style.borderLeftColor = "var(--rl-warning, #f59e0b)"
+    }
   }
 }

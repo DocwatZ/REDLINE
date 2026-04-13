@@ -31,6 +31,15 @@ class DirectMessageChannel < ApplicationCable::Channel
   end
 
   def render_dm(dm)
+    parent_data = nil
+    if dm.parent_id && !dm.parent&.deleted?
+      parent_data = {
+        id: dm.parent.id,
+        display_name: dm.parent.sender.display_name,
+        body: dm.parent.display_body.to_s.first(100)
+      }
+    end
+
     {
       id: dm.id,
       body: dm.display_body,
@@ -41,7 +50,19 @@ class DirectMessageChannel < ApplicationCable::Channel
       avatar_color: dm.sender.avatar_color,
       created_at: dm.created_at.iso8601,
       edited: dm.edited,
-      deleted: dm.deleted
+      deleted: dm.deleted,
+      parent: parent_data,
+      files: dm.files.attached? ? dm.files.map { |f|
+        {
+          filename: f.filename.to_s,
+          content_type: f.content_type,
+          url: Rails.application.routes.url_helpers.rails_blob_path(f, only_path: true),
+          image: f.content_type&.start_with?("image/")
+        }
+      } : [],
+      reactions: dm.direct_message_reactions.group(:emoji).count.map { |e, c|
+        { emoji: e, count: c, reacted: dm.direct_message_reactions.exists?(user_id: current_user.id, emoji: e) }
+      }
     }
   end
 end

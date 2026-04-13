@@ -33,7 +33,8 @@ export default class extends Controller {
       detail: {
         messageId:   this.messageIdValue,
         displayName: displayName,
-        body:        this.bodyValue
+        body:        this.bodyValue,
+        type:        this.typeValue
       }
     }))
   }
@@ -187,5 +188,65 @@ export default class extends Controller {
     document.dispatchEvent(new CustomEvent("message:open-thread", {
       detail: { messageId: this.messageIdValue }
     }))
+  }
+
+  // ── DM Reactions ──────────────────────────────────────────────────────────
+  openDmEmojiPicker() {
+    document.querySelectorAll(".emoji-picker-popup").forEach(p => p.remove())
+    const EMOJI = ["👍","👎","❤️","😂","😮","😢","😡","🎉","🔥","💯","✅","❌","⚡","🚀","💪","🙏","👀","💀","😎","🤔"]
+    const picker = document.createElement("div")
+    picker.className = "emoji-picker-popup"
+    picker.setAttribute("role", "dialog")
+    picker.setAttribute("aria-label", "Pick an emoji")
+    EMOJI.forEach(emoji => {
+      const btn = document.createElement("button")
+      btn.type = "button"
+      btn.textContent = emoji
+      btn.setAttribute("aria-label", emoji)
+      btn.addEventListener("click", () => { this.sendDmReaction(emoji); picker.remove() })
+      picker.appendChild(btn)
+    })
+    this.element.style.position = "relative"
+    this.element.appendChild(picker)
+    setTimeout(() => {
+      const close = (e) => { if (!picker.contains(e.target)) { picker.remove(); document.removeEventListener("click", close) } }
+      document.addEventListener("click", close)
+    }, 0)
+  }
+
+  async toggleDmReaction(event) {
+    const emoji = event.currentTarget.dataset.emoji
+    if (emoji) await this.sendDmReaction(emoji)
+  }
+
+  async sendDmReaction(emoji) {
+    const csrf = document.querySelector('meta[name="csrf-token"]')?.content
+    try {
+      await fetch(`/direct_messages/${this.messageIdValue}/reactions`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json", "Accept": "application/json", "X-CSRF-Token": csrf ?? "" },
+        body: JSON.stringify({ emoji })
+      })
+    } catch (err) { console.error("DM reaction error:", err) }
+  }
+
+  // ── Pin ────────────────────────────────────────────────────────────────────
+  async togglePin() {
+    const url = window.location.pathname
+    const parts = url.split("/").filter(Boolean)
+    const roomIdx = parts.indexOf("rooms")
+    const roomSlug = roomIdx >= 0 ? parts[roomIdx + 1] : null
+    if (!roomSlug) return
+
+    const isPinned = this.element.dataset.messagePinned === "true"
+    const action = isPinned ? "unpin" : "pin"
+    const csrf = document.querySelector('meta[name="csrf-token"]')?.content
+    try {
+      await fetch(`/rooms/${roomSlug}/messages/${this.messageIdValue}/${action}`, {
+        method: "PATCH",
+        headers: { "X-CSRF-Token": csrf ?? "", "Accept": "application/json" }
+      })
+      this.element.dataset.messagePinned = isPinned ? "false" : "true"
+    } catch (err) { console.error("Pin error:", err) }
   }
 }

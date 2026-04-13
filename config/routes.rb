@@ -27,6 +27,9 @@ Rails.application.routes.draw do
   # Push subscriptions
   resources :push_subscriptions, only: [:create, :destroy]
 
+  # User blocks
+  resources :user_blocks, only: [:create, :destroy], param: :blocked_user_id
+
   # Notification preferences
   resource :notification_preferences, only: [:update]
 
@@ -38,6 +41,7 @@ Rails.application.routes.draw do
   namespace :api do
     get  "keys/:user_id", to: "keys#show", as: :user_key
     put  "keys",          to: "keys#update", as: :keys
+    get  "room_keys/:room_id", to: "room_keys#show", as: :room_key
   end
 
   # Registration closed landing page (shown when self-signup is disabled)
@@ -55,6 +59,12 @@ Rails.application.routes.draw do
     end
     resources :rooms, only: [:index, :show, :destroy] do
       resources :channel_permissions, only: [:index, :update], controller: "channel_permissions"
+      resources :messages, only: [:index, :destroy], controller: "messages"
+    end
+    resources :invites, only: [:index] do
+      collection do
+        post :purge_expired
+      end
     end
     resources :audit_logs, only: [:index]
     get  "system",   to: "system#show",    as: :system
@@ -68,22 +78,30 @@ Rails.application.routes.draw do
       delete :leave
       get "livekit_token", to: "livekit#token", as: :livekit_token
     end
-    resources :messages, only: [ :create, :update, :destroy ] do
+    resources :messages, only: [ :index, :create, :update, :destroy ] do
       member do
         get :thread
         post :reactions, to: "reactions#create"
+        patch :pin
+        patch :unpin
       end
     end
     resources :invites, only: [:index, :create]
+    resources :room_memberships, only: [:update], param: :id
   end
 
-  # Individual direct-message actions (edit / delete)
-  resources :direct_messages, only: [ :update, :destroy ]
+  # Individual direct-message actions (edit / delete / react)
+  resources :direct_messages, only: [ :update, :destroy ] do
+    member do
+      post :reactions, to: "direct_message_reactions#toggle"
+    end
+  end
 
   # Direct Messages
   resources :users, only: [ :show, :index ] do
     resource :direct_messages, only: [ :show, :create ]
     post "status", to: "users#update_status", on: :collection
+    get "username_check", to: "users#username_check", on: :collection
   end
 
   root to: "rooms#index"
