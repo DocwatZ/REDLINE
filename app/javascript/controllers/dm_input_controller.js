@@ -1,5 +1,13 @@
 import { Controller } from "@hotwired/stimulus"
 
+// Common emoji set for the insert picker (not reactions)
+const INSERT_EMOJI = [
+  "😀","😂","😍","🥰","😎","🤔","😢","😡","🤩","🥳",
+  "👍","👎","❤️","🔥","✅","❌","⚡","🎉","🚀","💯",
+  "👋","🙏","💪","👀","💀","😴","🤝","🎊","😅","🤗",
+  "🌟","💡","📌","🔔","🎯","💬","📎","🖊️","📷","🎵"
+]
+
 /**
  * DM input controller — same as message-input but for direct messages.
  */
@@ -15,6 +23,7 @@ export default class extends Controller {
 
   disconnect() {
     document.removeEventListener("message:reply", this._onReply)
+    document.querySelectorAll(".compose-emoji-picker").forEach(p => p.remove())
   }
 
   get partnerId() {
@@ -62,6 +71,75 @@ export default class extends Controller {
     const idx = parseInt(event.currentTarget.dataset.index, 10)
     this._selectedFiles.splice(idx, 1)
     this.#renderFilePreview()
+  }
+
+  // ── Drag-and-drop ─────────────────────────────────────────────────────────
+  dragOver(event) {
+    event.preventDefault()
+    this.element.classList.add("compose-drag-over")
+  }
+
+  dragLeave(event) {
+    if (!this.element.contains(event.relatedTarget)) {
+      this.element.classList.remove("compose-drag-over")
+    }
+  }
+
+  drop(event) {
+    event.preventDefault()
+    this.element.classList.remove("compose-drag-over")
+    const files = Array.from(event.dataTransfer?.files ?? [])
+    if (files.length === 0) return
+    this._selectedFiles = [...this._selectedFiles, ...files]
+    this.#renderFilePreview()
+  }
+
+  // ── Emoji insert picker ───────────────────────────────────────────────────
+  openEmojiPicker(event) {
+    document.querySelectorAll(".compose-emoji-picker").forEach(p => p.remove())
+
+    const picker = document.createElement("div")
+    picker.className = "compose-emoji-picker"
+    picker.setAttribute("role", "dialog")
+    picker.setAttribute("aria-label", "Insert emoji")
+
+    INSERT_EMOJI.forEach(emoji => {
+      const btn = document.createElement("button")
+      btn.type = "button"
+      btn.textContent = emoji
+      btn.setAttribute("aria-label", `Insert ${emoji}`)
+      btn.className = "compose-emoji-btn"
+      btn.addEventListener("click", () => {
+        this.#insertAtCursor(emoji)
+        picker.remove()
+      })
+      picker.appendChild(btn)
+    })
+
+    const trigger = event.currentTarget
+    trigger.style.position = "relative"
+    trigger.parentElement.appendChild(picker)
+
+    setTimeout(() => {
+      const close = (e) => {
+        if (!picker.contains(e.target) && e.target !== trigger) {
+          picker.remove()
+          document.removeEventListener("click", close)
+        }
+      }
+      document.addEventListener("click", close)
+    }, 0)
+  }
+
+  #insertAtCursor(text) {
+    const field = this.fieldTarget
+    const start = field.selectionStart ?? field.value.length
+    const end   = field.selectionEnd   ?? field.value.length
+    field.value = field.value.slice(0, start) + text + field.value.slice(end)
+    const newPos = start + text.length
+    field.setSelectionRange(newPos, newPos)
+    field.focus()
+    this.autoResize()
   }
 
   #renderFilePreview() {
