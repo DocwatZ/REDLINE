@@ -89,7 +89,7 @@
                             data: { room_slug: room.slug },
                             aria: { current: @room&.slug == room.slug ? "page" : nil,
                                     label: "Announcement: #{room.name}" } do %>
-                        <span aria-hidden="true" style="flex-shrink:0"><%= room.display_icon %></span>
+                        <span aria-hidden="true" style="flex-shrink:0"><%= channel_icon_svg(room) %></span>
                         <span style="overflow:hidden;text-overflow:ellipsis;white-space:nowrap"><%= room.name %></span>
                       <% end %>
                       <div class="nav-room-viewers hidden" data-room-slug="<%= room.slug %>" aria-label="Active viewers"></div>
@@ -113,7 +113,7 @@
                             data: { room_slug: room.slug },
                             aria: { current: @room&.slug == room.slug ? "page" : nil,
                                     label: "Private #{room.voice_channel? ? 'Channel' : 'Chat'}: #{room.name}" } do %>
-                        <span aria-hidden="true" style="flex-shrink:0"><%= room.display_icon %></span>
+                        <span aria-hidden="true" style="flex-shrink:0"><%= channel_icon_svg(room) %></span>
                         <span style="overflow:hidden;text-overflow:ellipsis;white-space:nowrap"><%= room.name %></span>
                       <% end %>
                       <div class="nav-room-viewers hidden" data-room-slug="<%= room.slug %>" aria-label="Active viewers"></div>
@@ -150,7 +150,7 @@
                             data: { room_slug: room.slug },
                             aria: { current: @room&.slug == room.slug ? "page" : nil,
                                     label: "#{room.voice_channel? ? 'Channel' : 'Chat'}: #{room.name}" } do %>
-                        <span aria-hidden="true" style="flex-shrink:0"><%= room.display_icon %></span>
+                        <span aria-hidden="true" style="flex-shrink:0"><%= channel_icon_svg(room) %></span>
                         <span style="overflow:hidden;text-overflow:ellipsis;white-space:nowrap"><%= room.name %></span>
                       <% end %>
                       <div class="nav-room-viewers hidden" data-room-slug="<%= room.slug %>" aria-label="Active viewers"></div>
@@ -163,7 +163,7 @@
                                     data: { room_slug: sub.slug },
                                     aria: { current: @room&.slug == sub.slug ? "page" : nil,
                                             label: "Subchannel: #{sub.name}" } do %>
-                                <span aria-hidden="true" style="flex-shrink:0">🔊</span>
+                                <span aria-hidden="true" style="flex-shrink:0"><%= channel_icon_svg(sub) %></span>
                                 <span style="overflow:hidden;text-overflow:ellipsis;white-space:nowrap"><%= sub.name %></span>
                               <% end %>
                               <div class="nav-room-viewers hidden" data-room-slug="<%= sub.slug %>" aria-label="Active viewers"></div>
