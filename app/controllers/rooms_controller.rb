@@ -6,7 +6,7 @@ class RoomsController < ApplicationController
   before_action :require_admin!, only: [ :edit, :update, :destroy ]
 
   def index
-    @rooms = Room.public_rooms.top_level.by_position.includes(:owner, :room_memberships, :subchannels)
+    @rooms = Room.public_rooms.top_level.by_position.includes(:owner, :room_memberships, :subchannels, :category)
     @my_rooms = current_user.rooms.top_level.by_position.includes(:owner, :subchannels)
   end
 
