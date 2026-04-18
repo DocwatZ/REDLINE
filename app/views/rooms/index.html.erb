@@ -100,7 +100,7 @@
       <% public_rooms = @rooms.reject { |r| current_user.rooms.include?(r) } %>
       <% if public_rooms.any? %>
         <%
-          pub_by_cat = public_rooms.includes(:category).group_by(&:category)
+          pub_by_cat = public_rooms.group_by(&:category)
           pub_sorted_cats = pub_by_cat.keys.sort_by { |c| c ? [0, c.position.to_i, c.name] : [1, 0, ""] }
         %>
         <% pub_sorted_cats.each do |cat| %>
